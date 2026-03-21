@@ -10,20 +10,24 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <style>
     :root {
       --primary:    #007ACC;
       --primary-dk: #005fa3;
+      --primary-lt: #e8f4fd;
       --accent:     #CF2E2E;
-      --bg:         #f9f9f9;
+      --teal:       #00b4a0;
+      --gold:       #e0a020;
+      --bg:         #f4f7fb;
       --white:      #ffffff;
-      --text:       #333333;
-      --text-muted: rgba(51,51,51,0.55);
-      --border:     #e8e8e8;
-      --shadow-sm:  0 2px 8px rgba(0,0,0,0.07);
-      --shadow:     0 4px 20px rgba(0,0,0,0.10);
-      --radius:     4px;
-      --radius-sm:  4px;
+      --text:       #222222;
+      --text-muted: rgba(34,34,34,0.50);
+      --border:     #dde4ee;
+      --shadow-sm:  0 2px 8px rgba(0,80,160,0.08);
+      --shadow:     0 4px 20px rgba(0,80,160,0.12);
+      --radius:     6px;
+      --radius-sm:  6px;
     }
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
     body {
@@ -38,23 +42,25 @@
     .login-page {
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
-      background: var(--white);
+      background: linear-gradient(160deg, #0055a4 0%, #007ACC 55%, #00b4d8 100%);
       padding: 20px;
       position: relative;
       overflow: hidden;
     }
-    .login-page::before {
+    .login-page::after {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 5px;
-      background: var(--primary);
+      position: absolute; bottom: 0; left: 0; right: 0; height: 180px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 180'%3E%3Cpath fill='%23f4f7fb' fill-opacity='1' d='M0,120 C320,180 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,180 L0,180 Z'/%3E%3C/svg%3E") no-repeat bottom;
+      background-size: cover;
     }
     .login-card {
       background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border: none;
+      border-radius: 12px;
       padding: 48px 40px;
       width: 100%; max-width: 420px;
-      box-shadow: var(--shadow);
+      box-shadow: 0 24px 64px rgba(0,40,100,0.30);
+      position: relative; z-index: 1;
     }
     .login-logo { text-align: center; margin-bottom: 36px; }
     .login-logo img { width: 220px; height: auto; display: block; margin: 0 auto 14px; }
@@ -86,26 +92,26 @@
     /* ── DASHBOARD ─────────────────────────────────────── */
     .dashboard { min-height: 100vh; padding-bottom: 80px; }
     .dash-header {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 20px 20px;
-      position: relative;
+      background: linear-gradient(135deg, #0055a4 0%, #007ACC 60%, #0096d6 100%);
+      padding: 18px 20px 48px;
+      position: relative; overflow: hidden;
     }
-    .dash-header::before {
+    .dash-header::after {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 4px;
-      background: var(--primary);
+      position: absolute; bottom: -1px; left: 0; right: 0; height: 36px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 36'%3E%3Cpath fill='%23f4f7fb' d='M0,20 C360,40 720,0 1080,20 C1260,30 1380,8 1440,20 L1440,36 L0,36 Z'/%3E%3C/svg%3E") no-repeat bottom;
+      background-size: cover;
     }
-    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .header-logo img { width: 160px; height: auto; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .header-logo img { width: 150px; height: auto; filter: brightness(0) invert(1); }
     .logout-btn {
-      background: transparent; border: 1px solid var(--border);
-      color: var(--text-muted); padding: 6px 14px; border-radius: var(--radius); font-size: 13px; cursor: pointer; transition: all 0.2s;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+      color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.2s;
       font-family: 'Lato', sans-serif;
     }
-    .logout-btn:hover { border-color: var(--primary); color: var(--primary); }
-    .welcome-text { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
-    .welcome-sub { font-size: 13px; color: var(--text-muted); }
+    .logout-btn:hover { background: rgba(255,255,255,0.25); }
+    .welcome-text { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: white; margin-bottom: 3px; }
+    .welcome-sub { font-size: 13px; color: rgba(255,255,255,0.75); }
 
     /* ── CONTENT ───────────────────────────────────────── */
     .content { padding: 0 14px; margin-top: 16px; max-width: 640px; margin-left: auto; margin-right: auto; }
@@ -116,30 +122,37 @@
       position: fixed; bottom: 0; left: 0; right: 0;
       background: white; border-top: 1px solid var(--border);
       display: flex; padding: 6px 0 env(safe-area-inset-bottom, 6px);
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.06); z-index: 100;
+      box-shadow: 0 -2px 12px rgba(0,80,160,0.10); z-index: 100;
     }
     .nav-item {
       flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
-      padding: 4px 0; background: none; border: none; cursor: pointer;
-      color: var(--text-muted); font-size: 10px; font-weight: 700; transition: all 0.2s;
+      padding: 6px 0 4px; background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 10px; font-weight: 700; transition: color 0.2s;
       font-family: 'Lato', sans-serif; text-transform: uppercase; letter-spacing: 0.4px;
+      position: relative;
+    }
+    .nav-item::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 0; height: 3px; background: var(--primary); border-radius: 0 0 3px 3px;
+      transition: width 0.25s ease;
     }
     .nav-item.active { color: var(--primary); }
+    .nav-item.active::before { width: 32px; }
     .nav-icon { font-size: 20px; }
 
     /* ── CARD BASE ─────────────────────────────────────── */
-    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
-    .card-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--primary); }
+    .card-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 
     /* ── WEATHER ───────────────────────────────────────── */
     .weather-main { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; }
     .weather-emoji { font-size: 56px; line-height: 1; }
-    .weather-temp { font-size: 50px; font-weight: 700; color: var(--text); line-height: 1; font-family: 'Playfair Display', serif; }
+    .weather-temp { font-size: 50px; font-weight: 700; color: var(--primary); line-height: 1; font-family: 'Playfair Display', serif; }
     .weather-temp sup { font-size: 22px; font-weight: 700; vertical-align: super; }
     .weather-desc { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
     .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .wdet {
-      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px;
+      background: var(--primary-lt); border: 1px solid #c5ddf5; border-radius: var(--radius-sm); padding: 12px 14px;
       display: flex; align-items: center; gap: 10px;
     }
     .wdet-icon { font-size: 20px; }
@@ -148,9 +161,9 @@
 
     /* ── STAY ──────────────────────────────────────────── */
     .stay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .stay-cell { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+    .stay-cell { background: var(--primary-lt); border: 1px solid #c5ddf5; border-radius: var(--radius-sm); padding: 14px; text-align: center; }
     .stay-cell-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .stay-cell-val { font-size: 18px; font-weight: 700; color: var(--text); font-family: 'Playfair Display', serif; }
+    .stay-cell-val { font-size: 18px; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif; }
     .stay-cell-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
     .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.6s ease; }
@@ -176,7 +189,7 @@
     .rest-card:last-child { margin-bottom: 0; }
     .rest-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
     .rest-name { font-size: 15px; font-weight: 700; color: var(--text); font-family: 'Playfair Display', serif; }
-    .rest-price { background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 3px; flex-shrink: 0; margin-left: 8px; }
+    .rest-price { background: var(--primary); color: white; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; margin-left: 8px; }
     .rest-tipo { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
     .rest-desc { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 10px; }
     .maps-btn { display: inline-flex; align-items: center; gap: 4px; background: var(--primary); color: white; padding: 7px 14px; border-radius: var(--radius); font-size: 12px; font-weight: 700; text-decoration: none; transition: background 0.2s; }
@@ -208,7 +221,7 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
 /* ═══════════════════════════════════════════════════════════
    ⚙️  CONFIGURAZIONE OSPITI
@@ -366,6 +379,14 @@ function LoginPage({ onLogin }) {
       setErr('Credenziali non corrette. Contatta Giuseppe per assistenza.');
     }
   }
+
+  useEffect(() => {
+    gsap.from('.login-card', { y: 50, opacity: 0, duration: 0.7, ease: 'power3.out' });
+    gsap.from('.login-logo img', { y: -15, opacity: 0, duration: 0.5, delay: 0.3, ease: 'power2.out' });
+    gsap.from('.login-logo p',   { opacity: 0, duration: 0.4, delay: 0.5 });
+    gsap.from('.form-group',     { y: 12, opacity: 0, duration: 0.4, stagger: 0.1, delay: 0.5, ease: 'power2.out' });
+    gsap.from('.login-btn',      { y: 8,  opacity: 0, duration: 0.4, delay: 0.75, ease: 'power2.out' });
+  }, []);
 
   return (
     <div className="login-page">
@@ -597,6 +618,18 @@ function ContattiTab() {
 function Dashboard({ guest, onLogout }) {
   const [tab, setTab] = useState('home');
 
+  useEffect(() => {
+    gsap.from('.dash-header',  { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
+    gsap.from('.bottom-nav',   { y: 30,  opacity: 0, duration: 0.55, delay: 0.15, ease: 'power2.out' });
+  }, []);
+
+  useEffect(() => {
+    gsap.fromTo('.content .card',
+      { y: 22, opacity: 0 },
+      { y: 0,  opacity: 1, duration: 0.38, stagger: 0.09, ease: 'power2.out', clearProps: 'all' }
+    );
+  }, [tab]);
+
   const NAV = [
     { id:'home',     icon:'🏠', lbl:'Home'     },
     { id:'casa',     icon:'🛋️', lbl:'Casa'     },
@@ -631,7 +664,12 @@ function Dashboard({ guest, onLogout }) {
           <button
             key={n.id}
             className={`nav-item${tab === n.id ? ' active' : ''}`}
-            onClick={() => setTab(n.id)}
+            onClick={(e) => {
+              setTab(n.id);
+              gsap.fromTo(e.currentTarget.querySelector('.nav-icon'),
+                { scale: 0.7 }, { scale: 1, duration: 0.35, ease: 'back.out(2)' }
+              );
+            }}
           >
             <span className="nav-icon">{n.icon}</span>
             {n.lbl}

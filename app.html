@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Marina Azul 15 — Il tuo soggiorno</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root {
+      --blue-dark:  #023e8a;
+      --blue:       #0077b6;
+      --blue-mid:   #0096c7;
+      --blue-light: #00b4d8;
+      --blue-pale:  #90e0ef;
+      --blue-ghost: #caf0f8;
+      --bg:         #f0f9ff;
+      --white:      #ffffff;
+      --text:       #023e8a;
+      --text-muted: #5e8dba;
+      --shadow-sm:  0 2px 8px rgba(0,119,182,0.10);
+      --shadow:     0 4px 20px rgba(0,119,182,0.15);
+      --radius:     20px;
+      --radius-sm:  12px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── LOGIN ─────────────────────────────────────────── */
+    .login-page {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg,#023e8a 0%,#0077b6 40%,#00b4d8 80%,#90e0ef 100%);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-page::after {
+      content: '';
+      position: absolute; bottom: -2px; left: 0; right: 0; height: 120px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120'%3E%3Cpath fill='%23f0f9ff' fill-opacity='0.4' d='M0,60 C360,120 720,0 1080,60 C1260,90 1380,40 1440,60 L1440,120 L0,120 Z'/%3E%3Cpath fill='%23f0f9ff' fill-opacity='0.7' d='M0,80 C300,40 600,100 900,70 C1100,50 1300,90 1440,80 L1440,120 L0,120 Z'/%3E%3Cpath fill='%23f0f9ff' d='M0,100 C200,80 500,110 800,95 C1050,82 1300,105 1440,100 L1440,120 L0,120 Z'/%3E%3C/svg%3E") no-repeat bottom;
+      background-size: cover;
+    }
+    .bubble {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      animation: floatUp 8s ease-in-out infinite;
+    }
+    @keyframes floatUp {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-18px) scale(1.05); }
+    }
+    .login-card {
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      padding: 44px 36px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 20px 60px rgba(2,62,138,0.30);
+      position: relative; z-index: 1;
+    }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo .big-icon { font-size: 52px; display: block; margin-bottom: 10px; }
+    .login-logo h1 { font-size: 26px; font-weight: 900; color: var(--blue-dark); letter-spacing: -0.5px; }
+    .login-logo p { color: var(--text-muted); font-size: 13px; margin-top: 5px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 7px; }
+    .form-group input {
+      width: 100%; padding: 14px 16px;
+      border: 2px solid var(--blue-ghost); border-radius: var(--radius-sm);
+      font-size: 16px; color: var(--text); background: var(--bg);
+      transition: all 0.2s; outline: none;
+    }
+    .form-group input:focus { border-color: var(--blue-light); background: white; box-shadow: 0 0 0 4px rgba(0,180,216,0.12); }
+    .login-btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg,var(--blue) 0%,var(--blue-light) 100%);
+      color: white; border: none; border-radius: var(--radius-sm);
+      font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px;
+      transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,119,182,0.4);
+      letter-spacing: 0.2px;
+    }
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(0,119,182,0.5); }
+    .login-btn:active { transform: translateY(0); }
+    .login-error {
+      background: #fff5f5; border: 1.5px solid #fed7d7; color: #c53030;
+      padding: 12px 16px; border-radius: var(--radius-sm);
+      font-size: 13px; margin-bottom: 16px; text-align: center;
+    }
+
+    /* ── DASHBOARD ─────────────────────────────────────── */
+    .dashboard { min-height: 100vh; padding-bottom: 80px; }
+    .dash-header {
+      background: linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 50%,var(--blue-mid) 100%);
+      color: white; padding: 22px 20px 56px; position: relative; overflow: hidden;
+    }
+    .dash-header::after {
+      content: '';
+      position: absolute; bottom: -2px; left: 0; right: 0; height: 46px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 46'%3E%3Cpath fill='%23f0f9ff' d='M0,28 C360,55 720,0 1080,28 C1260,42 1380,12 1440,28 L1440,46 L0,46 Z'/%3E%3C/svg%3E") no-repeat bottom;
+      background-size: cover;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .header-brand { font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
+    .header-brand span { display: block; font-size: 12px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
+    .logout-btn {
+      background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+      color: white; padding: 7px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: rgba(255,255,255,0.28); }
+    .welcome-text { font-size: 24px; font-weight: 900; margin-bottom: 4px; }
+    .welcome-sub { font-size: 13px; opacity: 0.8; }
+
+    /* ── CONTENT ───────────────────────────────────────── */
+    .content { padding: 0 14px; margin-top: -18px; max-width: 640px; margin-left: auto; margin-right: auto; }
+    @media(min-width:640px){ .content{ padding: 0 24px; } }
+
+    /* ── BOTTOM NAV ────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white; border-top: 1px solid var(--blue-ghost);
+      display: flex; padding: 6px 0 env(safe-area-inset-bottom, 6px);
+      box-shadow: 0 -4px 20px rgba(0,119,182,0.08); z-index: 100;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 4px 0; background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 10px; font-weight: 600; transition: all 0.2s;
+    }
+    .nav-item.active { color: var(--blue); }
+    .nav-icon { font-size: 20px; }
+
+    /* ── CARD BASE ─────────────────────────────────────── */
+    .card { background: var(--white); border-radius: var(--radius); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .card-title { font-size: 17px; font-weight: 800; color: var(--blue-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+
+    /* ── WEATHER ───────────────────────────────────────── */
+    .weather-main { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; }
+    .weather-emoji { font-size: 60px; line-height: 1; }
+    .weather-temp { font-size: 50px; font-weight: 900; color: var(--blue-dark); line-height: 1; }
+    .weather-temp sup { font-size: 22px; font-weight: 700; vertical-align: super; }
+    .weather-desc { font-size: 16px; color: var(--text-muted); margin-top: 4px; }
+    .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .wdet {
+      background: var(--bg); border-radius: var(--radius-sm); padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .wdet-icon { font-size: 20px; }
+    .wdet-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .wdet-val { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    /* ── STAY ──────────────────────────────────────────── */
+    .stay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .stay-cell { background: var(--bg); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+    .stay-cell-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .stay-cell-val { font-size: 18px; font-weight: 900; color: var(--blue-dark); }
+    .stay-cell-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .progress-bar { height: 6px; background: var(--blue-ghost); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg,var(--blue),var(--blue-light)); border-radius: 3px; transition: width 0.6s ease; }
+    .progress-label { font-size: 11px; color: var(--text-muted); text-align: right; margin-bottom: 14px; }
+    .countdown-banner { border-radius: var(--radius-sm); padding: 18px 20px; text-align: center; }
+    .cb-default  { background: linear-gradient(135deg,var(--blue),var(--blue-light)); color: white; }
+    .cb-checkout { background: linear-gradient(135deg,#ff6b6b,#ee5a24); color: white; }
+    .cb-future   { background: linear-gradient(135deg,#2dc653,#1a9641); color: white; }
+    .cb-done     { background: linear-gradient(135deg,#718096,#4a5568); color: white; }
+    .cb-big   { font-size: 38px; font-weight: 900; }
+    .cb-label { font-size: 14px; opacity: 0.9; margin-top: 3px; }
+
+    /* ── CASA ──────────────────────────────────────────── */
+    .info-row { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--blue-ghost); }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { font-size: 22px; width: 30px; text-align: center; flex-shrink: 0; padding-top: 1px; }
+    .info-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .info-val { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; }
+    .mono { display: inline-block; background: var(--bg); border: 1.5px solid var(--blue-ghost); border-radius: 8px; padding: 3px 10px; font-size: 14px; font-family: monospace; }
+
+    /* ── RISTORANTI ────────────────────────────────────── */
+    .rest-card { border: 1.5px solid var(--blue-ghost); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; }
+    .rest-card:last-child { margin-bottom: 0; }
+    .rest-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .rest-name { font-size: 15px; font-weight: 800; color: var(--blue-dark); }
+    .rest-price { background: var(--blue-ghost); color: var(--blue); font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; margin-left: 8px; }
+    .rest-tipo { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+    .rest-desc { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 10px; }
+    .maps-btn { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1.5px solid var(--blue-ghost); color: var(--blue); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+    .maps-btn:hover { background: var(--blue-ghost); }
+
+    /* ── ATTIVITÀ ──────────────────────────────────────── */
+    .act-row { display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--blue-ghost); }
+    .act-row:last-child { border-bottom: none; }
+    .act-emoji { font-size: 28px; width: 38px; text-align: center; flex-shrink: 0; }
+    .act-name { font-size: 15px; font-weight: 700; color: var(--blue-dark); margin-bottom: 4px; }
+    .act-desc { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+    /* ── CONTATTI ──────────────────────────────────────── */
+    .contact-link { display: flex; align-items: center; gap: 14px; padding: 13px; background: var(--bg); border-radius: var(--radius-sm); margin-bottom: 9px; text-decoration: none; color: inherit; transition: all 0.2s; }
+    .contact-link:last-child { margin-bottom: 0; }
+    .contact-link.primary { background: linear-gradient(135deg,rgba(0,119,182,0.08),rgba(0,180,216,0.08)); border: 1.5px solid var(--blue-ghost); }
+    .contact-link:hover { transform: translateX(3px); }
+    .contact-emoji { font-size: 22px; width: 34px; text-align: center; flex-shrink: 0; }
+    .contact-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .contact-tel { font-size: 13px; color: var(--blue); margin-top: 2px; }
+
+    /* ── LOADING ───────────────────────────────────────── */
+    .loading { text-align: center; padding: 28px; color: var(--text-muted); }
+    .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--blue-ghost); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ═══════════════════════════════════════════════════════════
+   ⚙️  CONFIGURAZIONE OSPITI
+   Aggiorna questo oggetto per ogni nuovo ospite.
+   Formato: "nomeUtente": { password, name, checkin, checkout }
+   Le date vanno nel formato: "ANNO-MESE-GIORNO"  →  "2026-07-15"
+═══════════════════════════════════════════════════════════ */
+const OSPITI = {
+  "demo": {
+    password: "vasto2026",
+    name: "Famiglia Demo",
+    checkin:  "2026-03-21",
+    checkout: "2026-03-28"
+  },
+  // --- Aggiungi qui nuovi ospiti ---
+  // "mario": {
+  //   password: "mare123",
+  //   name: "Mario Rossi",
+  //   checkin:  "2026-07-10",
+  //   checkout: "2026-07-17"
+  // },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   🏠  INFORMAZIONI CASA
+═══════════════════════════════════════════════════════════ */
+const INFO_CASA = [
+  { icon:"📶", lbl:"WiFi — Nome Rete",          val:"MarinAzul15_Guest" },
+  { icon:"🔑", lbl:"WiFi — Password",            val:"oceano2024", mono:true },
+  { icon:"🕒", lbl:"Check-in",                   val:"Disponibile dalle ore 15:00" },
+  { icon:"🕙", lbl:"Check-out",                  val:"Entro le ore 10:00" },
+  { icon:"🅿️", lbl:"Parcheggio",                 val:"Privato incluso nel cortile" },
+  { icon:"❄️", lbl:"Aria Condizionata",           val:"Telecomando sul comodino in camera da letto" },
+  { icon:"🔥", lbl:"Riscaldamento",               val:"Termostato nel corridoio — max 22°C" },
+  { icon:"🗑️", lbl:"Raccolta Differenziata",      val:"Lunedì carta · Mercoledì plastica · Venerdì organico" },
+  { icon:"🚬", lbl:"Fumatori",                    val:"Vietato all'interno. Permesso sul balcone" },
+  { icon:"🐾", lbl:"Animali",                     val:"Non ammessi animali domestici" },
+  { icon:"📞", lbl:"Problemi o Emergenze",        val:"Contatta subito Giuseppe: +39 XXX XXX XXXX" },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   🍽️  RISTORANTI CONSIGLIATI
+═══════════════════════════════════════════════════════════ */
+const RISTORANTI = [
+  {
+    nome: "Ristorante Al Trabocco",
+    tipo: "🐟 Pesce e frutti di mare",
+    fascia: "€€",
+    desc: "Ottimo pesce fresco sul mare. Il brodetto alla vastese è una specialità da non perdere.",
+    maps: "https://maps.google.com/?q=ristorante+trabocco+vasto+marina"
+  },
+  {
+    nome: "Da Nicola",
+    tipo: "🍝 Cucina abruzzese tradizionale",
+    fascia: "€€",
+    desc: "Chitarrina fatta a mano, grigliata di carne e agnello. Ambiente autentico e familiare.",
+    maps: "https://maps.google.com/?q=da+nicola+vasto+marina"
+  },
+  {
+    nome: "Pizzeria Il Delfino",
+    tipo: "🍕 Pizza e grill",
+    fascia: "€",
+    desc: "Ideale per la famiglia, pizze ottime e ambiente rilassato. Ottimo rapporto qualità/prezzo.",
+    maps: "https://maps.google.com/?q=pizzeria+il+delfino+vasto+marina"
+  },
+  {
+    nome: "Bar Gelateria Adriatico",
+    tipo: "☕ Bar · Gelati · Colazione",
+    fascia: "€",
+    desc: "I migliori gelati artigianali della zona. Colazione eccellente. A circa 200m dall'appartamento.",
+    maps: "https://maps.google.com/?q=gelateria+adriatico+vasto+marina"
+  },
+  {
+    nome: "Pescheria e Gastronomia del Porto",
+    tipo: "🦐 Pesce fresco e rosticceria",
+    fascia: "€",
+    desc: "Pesce freschissimo direttamente dai pescatori locali. Ottimo per pranzi veloci.",
+    maps: "https://maps.google.com/?q=pescheria+vasto+marina"
+  },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   🌊  COSA FARE
+═══════════════════════════════════════════════════════════ */
+const ATTIVITA = [
+  { emoji:"🏖️", nome:"Spiagge di Vasto Marina",     desc:"Spiagge sabbiose a pochi passi dall'appartamento. Lettini e ombrelloni disponibili nei lidi convenzionati." },
+  { emoji:"🏛️", nome:"Centro Storico di Vasto",      desc:"A 5 km dal mare: Palazzo d'Avalos, il Museo Civico e panorami mozzafiato sull'Adriatico. Da non perdere!" },
+  { emoji:"🌿", nome:"Riserva di Punta Aderci",      desc:"Riserva naturale con sentieri, calette isolate e mare cristallino. Imperdibile per gli amanti della natura." },
+  { emoji:"🎣", nome:"I Trabocchi della Costa",      desc:"Le iconiche palafitte da pesca abruzzesi: molte sono diventate ristoranti caratteristici sull'acqua." },
+  { emoji:"⛵", nome:"Termoli e Isole Tremiti",      desc:"A 25 km: borgo marinaro con castello normanno. Da Termoli partono i traghetti per le bellissime Isole Tremiti." },
+  { emoji:"🚴", nome:"Ciclovia Adriatica",           desc:"Pista ciclabile lungo la costa con panorami spettacolari tra mare e pineta. Noleggio bici disponibile in loco." },
+  { emoji:"🍷", nome:"Lanciano e le Cantine",        desc:"A 40 km, tour delle cantine del Montepulciano d'Abruzzo DOC tra i borghi medievali della collina." },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   📞  NUMERI UTILI
+═══════════════════════════════════════════════════════════ */
+const CONTATTI = [
+  { emoji:"🏠", nome:"Giuseppe (Proprietario)",           tel:"+39 XXX XXX XXXX", primary:true },
+  { emoji:"🚨", nome:"Emergenze",                          tel:"112" },
+  { emoji:"🏥", nome:"Pronto Soccorso — Ospedale Vasto",  tel:"0873 308111" },
+  { emoji:"👮", nome:"Polizia Municipale Vasto",           tel:"0873 309324" },
+  { emoji:"🚒", nome:"Vigili del Fuoco",                   tel:"115" },
+  { emoji:"🚕", nome:"Taxi Vasto",                         tel:"0873 361340" },
+  { emoji:"💊", nome:"Farmacia di Vasto Marina",           tel:"+39 XXX XXX XXXX" },
+  { emoji:"🛒", nome:"Supermercato Conad",                 tel:"📍 Via del Mare — 300m dall'app." },
+];
+
+/* ───────────────────────────────────────
+   WMO weather codes → italiano
+─────────────────────────────────────── */
+const WMO = {
+  0:{d:"Cielo sereno",e:"☀️"},
+  1:{d:"Per lo più sereno",e:"🌤️"},
+  2:{d:"Parzialmente nuvoloso",e:"⛅"},
+  3:{d:"Nuvoloso",e:"☁️"},
+  45:{d:"Nebbia",e:"🌫️"},48:{d:"Nebbia",e:"🌫️"},
+  51:{d:"Pioggerellina",e:"🌦️"},53:{d:"Pioggerellina",e:"🌦️"},55:{d:"Pioggerellina",e:"🌧️"},
+  61:{d:"Pioggia leggera",e:"🌧️"},63:{d:"Pioggia",e:"🌧️"},65:{d:"Pioggia intensa",e:"🌧️"},
+  71:{d:"Neve leggera",e:"🌨️"},73:{d:"Neve",e:"❄️"},75:{d:"Neve intensa",e:"❄️"},77:{d:"Nevischio",e:"🌨️"},
+  80:{d:"Rovesci",e:"🌦️"},81:{d:"Rovesci",e:"🌦️"},82:{d:"Rovesci intensi",e:"⛈️"},
+  85:{d:"Rovesci di neve",e:"🌨️"},86:{d:"Rovesci di neve",e:"🌨️"},
+  95:{d:"Temporale",e:"⛈️"},96:{d:"Temporale con grandine",e:"⛈️"},99:{d:"Temporale con grandine",e:"⛈️"},
+};
+const wmo = c => WMO[c] || {d:"Condizioni variabili",e:"🌡️"};
+
+/* ───────────────────────────────────────
+   DATE UTILS
+─────────────────────────────────────── */
+const MONTHS = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+function fmtDate(s) {
+  const [y,m,d] = s.split('-');
+  return `${parseInt(d)} ${MONTHS[parseInt(m)-1]} ${y}`;
+}
+function daysFrom(s) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const t   = new Date(s); t.setHours(0,0,0,0);
+  return Math.round((t - now) / 86400000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTE: LoginPage
+═══════════════════════════════════════════════════════════ */
+function LoginPage({ onLogin }) {
+  const [user, setUser] = useState('');
+  const [pass, setPass] = useState('');
+  const [err,  setErr]  = useState('');
+
+  function submit(e) {
+    e.preventDefault();
+    const g = OSPITI[user.trim().toLowerCase()];
+    if (g && g.password === pass) {
+      onLogin({ ...g, username: user.trim().toLowerCase() });
+    } else {
+      setErr('Credenziali non corrette. Contatta Giuseppe per assistenza.');
+    }
+  }
+
+  const bubbles = [{s:130,t:8,l:8,dl:0},{s:80,t:15,l:75,dl:2},{s:170,t:55,l:3,dl:4},{s:60,t:45,l:82,dl:1},{s:100,t:78,l:45,dl:3}];
+
+  return (
+    <div className="login-page">
+      {bubbles.map((b,i) => (
+        <div key={i} className="bubble" style={{width:b.s,height:b.s,top:`${b.t}%`,left:`${b.l}%`,animationDelay:`${b.dl}s`}} />
+      ))}
+      <div className="login-card">
+        <div className="login-logo">
+          <span className="big-icon">🌊</span>
+          <h1>Marina Azul 15</h1>
+          <p>Vasto Marina — Benvenuto nel tuo soggiorno</p>
+        </div>
+        {err && <div className="login-error">⚠️ {err}</div>}
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label>Nome utente</label>
+            <input
+              type="text" value={user}
+              onChange={e=>{ setUser(e.target.value); setErr(''); }}
+              placeholder="inserisci l'utente"
+              autoCapitalize="none" autoCorrect="off" spellCheck="false"
+            />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password" value={pass}
+              onChange={e=>{ setPass(e.target.value); setErr(''); }}
+              placeholder="••••••••"
+            />
+          </div>
+          <button type="submit" className="login-btn">Accedi al tuo soggiorno →</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTE: WeatherCard
+═══════════════════════════════════════════════════════════ */
+function WeatherCard() {
+  const [w,   setW]   = useState(null);
+  const [load,setLoad]= useState(true);
+  const [err, setErr] = useState(false);
+
+  useEffect(() => {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=42.1099&longitude=14.7197&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature&timezone=Europe/Rome&forecast_days=1')
+      .then(r => r.json())
+      .then(d => { setW(d.current); setLoad(false); })
+      .catch(() => { setErr(true); setLoad(false); });
+  }, []);
+
+  const today = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+
+  return (
+    <div className="card">
+      <div className="card-title">🌤️ Meteo oggi — Vasto Marina</div>
+      {load && <div className="loading"><div className="spinner"/><br/>Caricamento meteo...</div>}
+      {err  && <div className="loading" style={{color:'#c53030'}}>⚠️ Meteo non disponibile. Controlla la connessione.</div>}
+      {w && !load && (() => {
+        const info = wmo(w.weather_code);
+        return <>
+          <div style={{fontSize:'12px',color:'var(--text-muted)',marginBottom:'14px',textTransform:'capitalize'}}>{today}</div>
+          <div className="weather-main">
+            <div className="weather-emoji">{info.e}</div>
+            <div>
+              <div className="weather-temp">{Math.round(w.temperature_2m)}<sup>°C</sup></div>
+              <div className="weather-desc">{info.d}</div>
+            </div>
+          </div>
+          <div className="weather-grid">
+            <div className="wdet"><div className="wdet-icon">🌡️</div><div><div className="wdet-label">Percepita</div><div className="wdet-val">{Math.round(w.apparent_temperature)}°C</div></div></div>
+            <div className="wdet"><div className="wdet-icon">💧</div><div><div className="wdet-label">Umidità</div><div className="wdet-val">{w.relative_humidity_2m}%</div></div></div>
+            <div className="wdet"><div className="wdet-icon">💨</div><div><div className="wdet-label">Vento</div><div className="wdet-val">{Math.round(w.wind_speed_10m)} km/h</div></div></div>
+            <div className="wdet"><div className="wdet-icon">📍</div><div><div className="wdet-label">Posizione</div><div className="wdet-val" style={{fontSize:'12px'}}>Vasto Marina</div></div></div>
+          </div>
+        </>;
+      })()}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTE: StayCard
+═══════════════════════════════════════════════════════════ */
+function StayCard({ guest }) {
+  const now      = new Date(); now.setHours(0,0,0,0);
+  const checkin  = new Date(guest.checkin);  checkin.setHours(0,0,0,0);
+  const checkout = new Date(guest.checkout); checkout.setHours(0,0,0,0);
+  const total    = Math.round((checkout - checkin)  / 86400000);
+  const done     = Math.round((now - checkin)        / 86400000);
+  const left     = daysFrom(guest.checkout);
+  const pct      = Math.max(0, Math.min(100, (done / total) * 100));
+
+  let bannerClass, bannerContent;
+  if (left < 0) {
+    bannerClass = "cb-done";
+    bannerContent = <><div className="cb-label">Il tuo soggiorno è terminato</div><div className="cb-big">Grazie! 👋</div></>;
+  } else if (left === 0) {
+    bannerClass = "cb-checkout";
+    bannerContent = <><div className="cb-big">Oggi è il check-out!</div><div className="cb-label">Entro le ore 10:00</div></>;
+  } else if (now < checkin) {
+    bannerClass = "cb-future";
+    bannerContent = <><div className="cb-label">Al tuo check-in mancano</div><div className="cb-big">{daysFrom(guest.checkin)} giorni</div></>;
+  } else {
+    bannerClass = "cb-default";
+    bannerContent = <><div className="cb-label">Notti rimanenti</div><div className="cb-big">{left}</div><div className="cb-label" style={{marginTop:'3px',opacity:0.85}}>Check-out {fmtDate(guest.checkout)}</div></>;
+  }
+
+  return (
+    <div className="card">
+      <div className="card-title">📅 Il tuo soggiorno</div>
+      <div style={{fontSize:'16px',fontWeight:'800',color:'var(--blue-dark)',marginBottom:'14px'}}>
+        Benvenuto/a, {guest.name}! 🎉
+      </div>
+      <div className="stay-grid">
+        <div className="stay-cell">
+          <div className="stay-cell-label">Check-in</div>
+          <div className="stay-cell-val" style={{fontSize:'14px'}}>{fmtDate(guest.checkin)}</div>
+          <div className="stay-cell-sub">dalle 15:00</div>
+        </div>
+        <div className="stay-cell">
+          <div className="stay-cell-label">Check-out</div>
+          <div className="stay-cell-val" style={{fontSize:'14px'}}>{fmtDate(guest.checkout)}</div>
+          <div className="stay-cell-sub">entro le 10:00</div>
+        </div>
+        <div className="stay-cell">
+          <div className="stay-cell-label">Durata</div>
+          <div className="stay-cell-val">{total}</div>
+          <div className="stay-cell-sub">notti</div>
+        </div>
+        <div className="stay-cell">
+          <div className="stay-cell-label">Trascorse</div>
+          <div className="stay-cell-val">{Math.max(0, done)}</div>
+          <div className="stay-cell-sub">di {total}</div>
+        </div>
+      </div>
+      {total > 0 && now >= checkin && now <= checkout && (
+        <>
+          <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
+          <div className="progress-label">{Math.round(pct)}% del soggiorno completato</div>
+        </>
+      )}
+      <div className={`countdown-banner ${bannerClass}`}>{bannerContent}</div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TABS CONTENT
+═══════════════════════════════════════════════════════════ */
+function CasaTab() {
+  return (
+    <div className="card">
+      <div className="card-title">🏠 Informazioni Casa</div>
+      {INFO_CASA.map((item,i) => (
+        <div className="info-row" key={i}>
+          <div className="info-icon">{item.icon}</div>
+          <div>
+            <div className="info-lbl">{item.lbl}</div>
+            {item.mono
+              ? <span className="mono">{item.val}</span>
+              : <div className="info-val">{item.val}</div>
+            }
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RistorantiTab() {
+  return (
+    <div className="card">
+      <div className="card-title">🍽️ Dove Mangiare</div>
+      {RISTORANTI.map((r,i) => (
+        <div className="rest-card" key={i}>
+          <div className="rest-head">
+            <div className="rest-name">{r.nome}</div>
+            <div className="rest-price">{r.fascia}</div>
+          </div>
+          <div className="rest-tipo">{r.tipo}</div>
+          <div className="rest-desc">{r.desc}</div>
+          <a href={r.maps} target="_blank" rel="noopener noreferrer" className="maps-btn">📍 Apri in Maps</a>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AttivitaTab() {
+  return (
+    <div className="card">
+      <div className="card-title">🌊 Cosa Fare</div>
+      {ATTIVITA.map((a,i) => (
+        <div className="act-row" key={i}>
+          <div className="act-emoji">{a.emoji}</div>
+          <div>
+            <div className="act-name">{a.nome}</div>
+            <div className="act-desc">{a.desc}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ContattiTab() {
+  function href(tel) {
+    if (/^[\d\s\+]+$/.test(tel)) return `tel:${tel.replace(/\s/g,'')}`;
+    return '#';
+  }
+  return (
+    <div className="card">
+      <div className="card-title">📞 Numeri Utili</div>
+      {CONTATTI.map((c,i) => (
+        <a key={i} href={href(c.tel)} className={`contact-link${c.primary?' primary':''}`}>
+          <div className="contact-emoji">{c.emoji}</div>
+          <div>
+            <div className="contact-name">{c.nome}</div>
+            <div className="contact-tel">{c.tel}</div>
+          </div>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTE: Dashboard
+═══════════════════════════════════════════════════════════ */
+function Dashboard({ guest, onLogout }) {
+  const [tab, setTab] = useState('home');
+
+  const NAV = [
+    { id:'home',     icon:'🏠', lbl:'Home'     },
+    { id:'casa',     icon:'🛋️', lbl:'Casa'     },
+    { id:'mangiare', icon:'🍽️', lbl:'Mangiare' },
+    { id:'fare',     icon:'🌊', lbl:'Fare'     },
+    { id:'contatti', icon:'📞', lbl:'Contatti' },
+  ];
+
+  return (
+    <div className="dashboard">
+      <div className="dash-header">
+        <div className="header-top">
+          <div className="header-brand">
+            🌊 Marina Azul 15
+            <span>Vasto Marina, Abruzzo</span>
+          </div>
+          <button className="logout-btn" onClick={onLogout}>Esci</button>
+        </div>
+        <div className="welcome-text">Ciao, {guest.name.split(' ')[0]}! 👋</div>
+        <div className="welcome-sub">Benvenuto nel tuo soggiorno a Vasto Marina</div>
+      </div>
+
+      <div className="content">
+        {tab === 'home'     && <><WeatherCard /><StayCard guest={guest} /></>}
+        {tab === 'casa'     && <CasaTab />}
+        {tab === 'mangiare' && <RistorantiTab />}
+        {tab === 'fare'     && <AttivitaTab />}
+        {tab === 'contatti' && <ContattiTab />}
+      </div>
+
+      <div className="bottom-nav">
+        {NAV.map(n => (
+          <button
+            key={n.id}
+            className={`nav-item${tab === n.id ? ' active' : ''}`}
+            onClick={() => setTab(n.id)}
+          >
+            <span className="nav-icon">{n.icon}</span>
+            {n.lbl}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   APP ROOT
+═══════════════════════════════════════════════════════════ */
+function App() {
+  const [guest, setGuest] = useState(null);
+  return guest
+    ? <Dashboard guest={guest} onLogout={() => setGuest(null)} />
+    : <LoginPage onLogin={setGuest} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -11,6 +11,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary:    #007ACC;
@@ -355,8 +356,10 @@
     .guest-user { font-size: 11px; color: var(--primary); margin-top: 1px; }
     .del-btn { background: none; border: 1px solid #fed7d7; color: #c53030; padding: 5px 10px; border-radius: var(--radius); font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
     .del-btn:hover { background: #fff5f5; }
-    .admin-note { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 8px; }
+    .edit-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 5px 9px; border-radius: var(--radius); font-size: 13px; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+    .edit-btn:hover { border-color: var(--primary); }
     .success-msg { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 10px; }
+    .error-msg { background: #fff5f5; border: 1px solid #fed7d7; color: #c53030; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -366,19 +369,18 @@
 const { useState, useEffect, useRef, createContext, useContext } = React;
 
 /* ═══════════════════════════════════════════════════════════
+   SUPABASE
+═══════════════════════════════════════════════════════════ */
+const sb = supabase.createClient(
+  'https://thzgcvjhrgusvvyhfmgq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoemdjdmpocmd1c3Z2eWhmbWdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjQxMjksImV4cCI6MjA4OTcwMDEyOX0.a_LxNeTn4eo1Jll2qdH1ZpMgNRAcNaTlatDQOakgXZI'
+);
+
+/* ═══════════════════════════════════════════════════════════
    CONFIGURAZIONE
 ═══════════════════════════════════════════════════════════ */
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "marina2026!";
-
-const OSPITI = {
-  "demo": {
-    password: "vasto2026",
-    name: "Famiglia Demo",
-    checkin:  "2026-03-21",
-    checkout: "2026-03-28"
-  },
-};
 
 const INFO_CASA = [
   { icon:"📶", lbl:"WiFi — Nome Rete",         val:"MarinAzul15_Guest" },
@@ -763,30 +765,40 @@ function OnboardingModal({ onDone }) {
 ═══════════════════════════════════════════════════════════ */
 function LoginPage({ onLogin }) {
   const { t, lang, setLang } = useLang();
-  const [user, setUser] = useState('');
-  const [pass, setPass] = useState('');
-  const [err,  setErr]  = useState('');
+  const [user, setUser]       = useState('');
+  const [pass, setPass]       = useState('');
+  const [err,  setErr]        = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     const trimmed = user.trim().toLowerCase();
+    setErr('');
+
     if (trimmed === ADMIN_USER && pass === ADMIN_PASS) {
       onLogin({ username: ADMIN_USER, name: 'Admin', isAdmin: true });
       return;
     }
-    const g = OSPITI[trimmed];
-    if (g && g.password === pass) {
-      onLogin({ ...g, username: trimmed });
-      return;
-    }
-    // Check localStorage guests
+
+    setLoading(true);
     try {
-      const stored = JSON.parse(localStorage.getItem('ma15_guests') || '{}');
-      if (stored[trimmed] && stored[trimmed].password === pass) {
-        onLogin({ ...stored[trimmed], username: trimmed });
+      const { data, error } = await sb
+        .from('ospiti')
+        .select('*')
+        .eq('username', trimmed)
+        .single();
+
+      if (data && data.password === pass) {
+        onLogin({
+          username: data.username,
+          name:     data.name,
+          checkin:  data.checkin,
+          checkout: data.checkout,
+        });
         return;
       }
     } catch(ex) {}
+    setLoading(false);
     setErr(t.login_err);
   }
 
@@ -828,7 +840,9 @@ function LoginPage({ onLogin }) {
               placeholder="••••••••"
             />
           </div>
-          <button type="submit" className="login-btn">{t.signin_btn}</button>
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? '...' : t.signin_btn}
+          </button>
         </form>
       </div>
     </div>
@@ -1238,40 +1252,72 @@ function ContattiTab() {
 ═══════════════════════════════════════════════════════════ */
 function AdminPanel({ onLogout }) {
   const { t, lang, setLang } = useLang();
-  const [lsGuests, setLsGuests] = useState({});
-  const [form, setForm] = useState({ username:'', password:'', name:'', checkin:'', checkout:'' });
-  const [successMsg, setSuccessMsg] = useState('');
+  const [guests, setGuests]   = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [saving, setSaving]   = useState(false);
+  const [msg, setMsg]         = useState({ text:'', ok:true });
+  const [editId, setEditId]   = useState(null);
+  const [editData, setEditData] = useState({});
+  const [form, setForm]       = useState({ username:'', password:'', name:'', checkin:'', checkout:'' });
+
+  const EMPTY = { username:'', password:'', name:'', checkin:'', checkout:'' };
+
+  async function loadGuests() {
+    setLoadingList(true);
+    const { data } = await sb.from('ospiti').select('*').order('checkin');
+    setGuests(data || []);
+    setLoadingList(false);
+  }
 
   useEffect(() => {
-    try {
-      setLsGuests(JSON.parse(localStorage.getItem('ma15_guests') || '{}'));
-    } catch(e) { setLsGuests({}); }
+    loadGuests();
     gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
     gsap.from('.card, .admin-form', { y: 22, opacity: 0, duration: 0.4, stagger: 0.09, ease: 'power2.out', clearProps: 'all', delay: 0.15 });
   }, []);
 
-  function addGuest(e) {
+  function flash(text, ok=true) {
+    setMsg({ text, ok });
+    setTimeout(() => setMsg({ text:'', ok:true }), 3500);
+  }
+
+  async function addGuest(e) {
     e.preventDefault();
-    if (!form.username || !form.password || !form.name || !form.checkin || !form.checkout) return;
-    const updated = { ...lsGuests, [form.username.toLowerCase()]: { password: form.password, name: form.name, checkin: form.checkin, checkout: form.checkout } };
-    localStorage.setItem('ma15_guests', JSON.stringify(updated));
-    setLsGuests(updated);
-    setForm({ username:'', password:'', name:'', checkin:'', checkout:'' });
-    setSuccessMsg(t.ospite_aggiunto);
-    setTimeout(() => setSuccessMsg(''), 3000);
+    setSaving(true);
+    const { error } = await sb.from('ospiti').insert({
+      username: form.username.trim().toLowerCase(),
+      password: form.password,
+      name:     form.name,
+      checkin:  form.checkin,
+      checkout: form.checkout,
+    });
+    setSaving(false);
+    if (error) { flash('❌ ' + error.message, false); return; }
+    flash('✅ ' + t.ospite_aggiunto);
+    setForm(EMPTY);
+    loadGuests();
   }
 
-  function delGuest(username) {
-    const updated = { ...lsGuests };
-    delete updated[username];
-    localStorage.setItem('ma15_guests', JSON.stringify(updated));
-    setLsGuests(updated);
+  async function saveEdit(id) {
+    setSaving(true);
+    const { error } = await sb.from('ospiti').update({
+      name:     editData.name,
+      password: editData.password,
+      checkin:  editData.checkin,
+      checkout: editData.checkout,
+    }).eq('id', id);
+    setSaving(false);
+    if (error) { flash('❌ ' + error.message, false); return; }
+    flash('✅ Modifiche salvate');
+    setEditId(null);
+    loadGuests();
   }
 
-  const allGuests = [
-    ...Object.entries(OSPITI).map(([u,g]) => ({ username:u, ...g, isHardcoded: true })),
-    ...Object.entries(lsGuests).map(([u,g]) => ({ username:u, ...g, isHardcoded: false })),
-  ];
+  async function delGuest(id, name) {
+    if (!window.confirm(`Eliminare ${name}?`)) return;
+    await sb.from('ospiti').delete().eq('id', id);
+    flash('🗑️ Ospite eliminato');
+    loadGuests();
+  }
 
   return (
     <div className="dashboard">
@@ -1287,13 +1333,15 @@ function AdminPanel({ onLogout }) {
         </div>
         <div className="admin-badge">{t.admin_badge}</div>
         <div className="welcome-text">{t.admin_panel}</div>
-        <div className="welcome-sub">Marina Azul 15 — Gestione Ospiti</div>
+        <div className="welcome-sub">Marina Azul 15 — Gestione Ospiti · Supabase</div>
       </div>
 
       <div className="content">
+
+        {/* ── FORM AGGIUNGI ── */}
         <div className="admin-form">
           <div className="card-title">➕ {t.aggiungi_ospite}</div>
-          {successMsg && <div className="success-msg">✅ {successMsg}</div>}
+          {msg.text && <div className={msg.ok ? 'success-msg' : 'error-msg'}>{msg.text}</div>}
           <form onSubmit={addGuest}>
             <div className="form-row">
               <div className="form-field">
@@ -1320,35 +1368,71 @@ function AdminPanel({ onLogout }) {
                 <label>{t.checkout_ospite}</label>
                 <input type="date" value={form.checkout} onChange={e=>setForm(f=>({...f,checkout:e.target.value}))} required />
               </div>
-              <div className="form-field" style={{justifyContent:'flex-end'}}>
-                <label>&nbsp;</label>
-                <button type="submit" className="add-btn">{t.aggiungi_btn}</button>
+              <div className="form-field" style={{alignSelf:'flex-end'}}>
+                <button type="submit" className="add-btn" disabled={saving}>
+                  {saving ? '...' : t.aggiungi_btn}
+                </button>
               </div>
             </div>
           </form>
-          <p className="admin-note">ℹ️ {t.admin_note}</p>
         </div>
 
+        {/* ── LISTA OSPITI ── */}
         <div className="card">
-          <div className="card-title">👥 {t.ospiti_registrati} ({allGuests.length})</div>
-          {allGuests.map((g,i) => {
+          <div className="card-title">👥 {t.ospiti_registrati} ({guests.length})</div>
+          {loadingList && <div className="loading"><div className="spinner"/></div>}
+          {!loadingList && guests.length === 0 && <p style={{color:'var(--text-muted)',fontSize:'14px'}}>Nessun ospite. Aggiungine uno sopra.</p>}
+          {guests.map(g => {
             const nights = g.checkin && g.checkout
-              ? Math.round((new Date(g.checkout) - new Date(g.checkin)) / 86400000)
-              : '?';
+              ? Math.round((new Date(g.checkout) - new Date(g.checkin)) / 86400000) : '?';
+            const isEditing = editId === g.id;
             return (
-              <div className="guest-row" key={i}>
-                <div className="guest-info">
-                  <div className="guest-name">{g.name}</div>
-                  <div className="guest-user">@{g.username} — {g.isHardcoded ? t.hardcoded_lbl : t.locale_lbl}</div>
-                  <div className="guest-dates">{g.checkin} → {g.checkout} ({nights} {t.di_notti})</div>
-                </div>
-                {!g.isHardcoded && (
-                  <button className="del-btn" onClick={() => delGuest(g.username)}>{t.elimina}</button>
+              <div className="guest-row" key={g.id}>
+                {isEditing ? (
+                  <div style={{flex:1}}>
+                    <div className="form-row" style={{marginBottom:'8px'}}>
+                      <div className="form-field">
+                        <label>Nome</label>
+                        <input type="text" value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))} />
+                      </div>
+                      <div className="form-field">
+                        <label>Password</label>
+                        <input type="text" value={editData.password} onChange={e=>setEditData(d=>({...d,password:e.target.value}))} />
+                      </div>
+                    </div>
+                    <div className="form-row" style={{marginBottom:'10px'}}>
+                      <div className="form-field">
+                        <label>Check-in</label>
+                        <input type="date" value={editData.checkin} onChange={e=>setEditData(d=>({...d,checkin:e.target.value}))} />
+                      </div>
+                      <div className="form-field">
+                        <label>Check-out</label>
+                        <input type="date" value={editData.checkout} onChange={e=>setEditData(d=>({...d,checkout:e.target.value}))} />
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:'8px'}}>
+                      <button className="add-btn" style={{padding:'7px 16px'}} onClick={()=>saveEdit(g.id)} disabled={saving}>Salva</button>
+                      <button className="del-btn" style={{background:'transparent',color:'var(--text-muted)',border:'1px solid var(--border)'}} onClick={()=>setEditId(null)}>Annulla</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="guest-info">
+                      <div className="guest-name">{g.name}</div>
+                      <div className="guest-user">@{g.username}</div>
+                      <div className="guest-dates">{g.checkin} → {g.checkout} ({nights} notti)</div>
+                    </div>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button className="edit-btn" onClick={()=>{ setEditId(g.id); setEditData({name:g.name,password:g.password,checkin:g.checkin,checkout:g.checkout}); }}>✏️</button>
+                      <button className="del-btn" onClick={()=>delGuest(g.id, g.name)}>{t.elimina}</button>
+                    </div>
+                  </>
                 )}
               </div>
             );
           })}
         </div>
+
       </div>
     </div>
   );

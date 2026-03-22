@@ -2124,8 +2124,11 @@ function AdminPanel({ onLogout }) {
     gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
   }, []);
 
-  const TABS = [
-    { id:'ospiti',     icon:'👥', lbl:'Ospiti'     },
+  const TABS_ROW1 = [
+    { id:'ospiti',   icon:'👥', lbl:'Ospiti'   },
+    { id:'tracking', icon:'📊', lbl:'Tracking' },
+  ];
+  const TABS_ROW2 = [
     { id:'ristoranti', icon:'🍽️', lbl:'Ristoranti' },
     { id:'attivita',   icon:'🌊', lbl:'Attività'   },
     { id:'eventi',     icon:'🎉', lbl:'Eventi'     },
@@ -2133,9 +2136,7 @@ function AdminPanel({ onLogout }) {
     { id:'infocasa',   icon:'🏠', lbl:'Info Casa'  },
     { id:'regole',     icon:'📋', lbl:'Regole'     },
     { id:'contatti',   icon:'📞', lbl:'Contatti'   },
-    { id:'tracking',   icon:'📊', lbl:'Tracking'   },
   ];
-
   const navRef = useRef(null);
   function scrollNav(dir) {
     if (navRef.current) navRef.current.scrollBy({ left: dir * 140, behavior: 'smooth' });
@@ -2159,16 +2160,25 @@ function AdminPanel({ onLogout }) {
       </div>
 
       <div className="content">
-        <div className="admin-tab-wrap">
-          <button className="admin-tab-arrow left"  onClick={() => scrollNav(-1)}>‹</button>
-          <div className="admin-tab-nav" ref={navRef}>
-            {TABS.map(tb => (
+        <div style={{marginBottom:'22px'}}>
+          <div className="admin-tab-nav" style={{marginBottom:'8px'}}>
+            {TABS_ROW1.map(tb => (
               <button key={tb.id} className={'admin-tab-btn' + (adminTab === tb.id ? ' active' : '')} onClick={() => setAdminTab(tb.id)}>
                 {tb.icon} {tb.lbl}
               </button>
             ))}
           </div>
-          <button className="admin-tab-arrow right" onClick={() => scrollNav(1)}>›</button>
+          <div className="admin-tab-wrap">
+            <button className="admin-tab-arrow left"  onClick={() => scrollNav(-1)}>‹</button>
+            <div className="admin-tab-nav" ref={navRef}>
+              {TABS_ROW2.map(tb => (
+                <button key={tb.id} className={'admin-tab-btn' + (adminTab === tb.id ? ' active' : '')} onClick={() => setAdminTab(tb.id)}>
+                  {tb.icon} {tb.lbl}
+                </button>
+              ))}
+            </div>
+            <button className="admin-tab-arrow right" onClick={() => scrollNav(1)}>›</button>
+          </div>
         </div>
 
         {adminTab === 'ospiti'     && <OspitiSection />}

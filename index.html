@@ -12,6 +12,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --primary:    #007ACC;
@@ -497,6 +498,11 @@
     .guest-user { font-size: 11px; color: var(--primary); margin-top: 1px; }
 
     /* TRACKING TAB */
+    .track-chart-wrap {
+      background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px; box-shadow: var(--shadow-sm); margin-bottom: 14px;
+    }
+    .track-chart-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
     .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
     .track-stat {
       background: var(--white); border: 1px solid var(--border); border-radius: 12px;
@@ -1887,6 +1893,93 @@ function ContattiAdminSection() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   EVENTS CHART
+═══════════════════════════════════════════════════════════ */
+function EventsChart({ rows }) {
+  const canvasRef = useRef(null);
+  const chartRef  = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    // Build last 14 days buckets
+    const days = 14;
+    const buckets = {};
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      buckets[key] = 0;
+    }
+    rows.forEach(r => {
+      const day = (r.created_at || '').slice(0, 10);
+      if (day in buckets) buckets[day]++;
+    });
+
+    const labels = Object.keys(buckets).map(k => {
+      const [, m, d] = k.split('-');
+      return d + '/' + m;
+    });
+    const data = Object.values(buckets);
+
+    if (chartRef.current) chartRef.current.destroy();
+
+    chartRef.current = new Chart(canvasRef.current, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Eventi',
+          data,
+          backgroundColor: 'rgba(0,122,204,0.18)',
+          borderColor: '#007ACC',
+          borderWidth: 2,
+          borderRadius: 5,
+          hoverBackgroundColor: 'rgba(0,122,204,0.35)',
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => 'Giorno: ' + items[0].label,
+              label:  (item)  => ' ' + item.raw + ' eventi',
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Lato', size: 11 }, color: '#888' },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              font: { family: 'Lato', size: 11 },
+              color: '#888',
+            },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+          },
+        },
+      },
+    });
+
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [rows]);
+
+  return (
+    <div className="track-chart-wrap">
+      <div className="track-chart-title">📈 Eventi per giorno (ultimi 14 giorni)</div>
+      <canvas ref={canvasRef} height="120" />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
    ADMIN — TRACKING
 ═══════════════════════════════════════════════════════════ */
 function TrackingSection() {
@@ -1947,6 +2040,8 @@ function TrackingSection() {
       <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
         <button className="cancel-btn" onClick={load}>↻ Aggiorna</button>
       </div>
+
+      <EventsChart rows={rows} />
 
       <div className="track-grid">
         <div className="track-stat">

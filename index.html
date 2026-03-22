@@ -7,6 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#007ACC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Marina Azul 15">
+  <link rel="apple-touch-icon" href="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -81,6 +87,18 @@
       .login-footer { color: rgba(30,40,80,0.55); }
       .login-footer a { color: rgba(0,50,120,0.75); border-bottom-color: rgba(0,50,120,0.25); }
     }
+    .install-btn {
+      display: flex; align-items: center; gap: 8px;
+      margin: 18px auto 0;
+      padding: 11px 22px;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.45);
+      border-radius: 24px;
+      color: white; font-size: 13px; font-family: 'Lato', sans-serif; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+      backdrop-filter: blur(4px);
+    }
+    .install-btn:hover { background: rgba(255,255,255,0.25); }
     .login-logo { text-align: center; margin-bottom: 36px; }
     .login-logo img { width: 220px; height: auto; display: block; margin: 0 auto 14px; }
     .login-logo p { color: var(--text-muted); font-size: 14px; font-style: italic; }
@@ -581,6 +599,22 @@
 <body>
 <div id="root"></div>
 
+<script>
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+  // Cattura il prompt di installazione
+  window._installPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    window._installPrompt = e;
+    window.dispatchEvent(new Event('installpromptready'));
+  });
+</script>
+
 <script type="text/babel">
 const { useState, useEffect, useRef, createContext, useContext } = React;
 
@@ -880,10 +914,24 @@ function OnboardingModal({ onDone }) {
 ═══════════════════════════════════════════════════════════ */
 function LoginPage({ onLogin }) {
   const { t, lang, setLang } = useLang();
-  const [user, setUser]       = useState('');
-  const [pass, setPass]       = useState('');
-  const [err,  setErr]        = useState('');
-  const [loading, setLoading] = useState(false);
+  const [user, setUser]         = useState('');
+  const [pass, setPass]         = useState('');
+  const [err,  setErr]          = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [canInstall, setCanInstall] = useState(!!window._installPrompt);
+
+  useEffect(() => {
+    const handler = () => setCanInstall(true);
+    window.addEventListener('installpromptready', handler);
+    return () => window.removeEventListener('installpromptready', handler);
+  }, []);
+
+  async function install() {
+    if (!window._installPrompt) return;
+    window._installPrompt.prompt();
+    const { outcome } = await window._installPrompt.userChoice;
+    if (outcome === 'accepted') { window._installPrompt = null; setCanInstall(false); }
+  }
 
   async function submit(e) {
     e.preventDefault();
@@ -967,6 +1015,11 @@ function LoginPage({ onLogin }) {
           </button>
         </form>
       </div>
+      {canInstall && (
+        <button className="install-btn" onClick={install}>
+          ⊕ Installa l'app sul dispositivo
+        </button>
+      )}
       <footer className="login-footer">
         © 2026 Marina Azul 15 — powered by <a href="#" target="_blank" rel="noopener noreferrer">Playground.</a>
       </footer>

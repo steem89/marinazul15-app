@@ -1,0 +1,25 @@
+{
+  "name": "Marina Azul 15",
+  "short_name": "Marina Azul",
+  "description": "La tua guida digitale per il soggiorno a Marina Azul 15, Vasto Marina.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#007ACC",
+  "theme_color": "#007ACC",
+  "icons": [
+    {
+      "src": "https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

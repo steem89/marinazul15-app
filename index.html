@@ -382,112 +382,6 @@ const sb = supabase.createClient(
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "marina2026!";
 
-const INFO_CASA = [
-  { icon:"📶", lbl:"WiFi — Nome Rete",         val:"MarinAzul15_Guest" },
-  { icon:"🔑", lbl:"WiFi — Password",           val:"oceano2024", mono:true },
-  { icon:"🕒", lbl:"Check-in",                  val:"Disponibile dalle ore 15:00" },
-  { icon:"🕙", lbl:"Check-out",                 val:"Entro le ore 10:00" },
-  { icon:"🅿️", lbl:"Parcheggio",                val:"Privato incluso nel cortile" },
-  { icon:"❄️", lbl:"Aria Condizionata",          val:"Telecomando sul comodino in camera da letto" },
-  { icon:"🔥", lbl:"Riscaldamento",              val:"Termostato nel corridoio — max 22°C" },
-  { icon:"🗑️", lbl:"Raccolta Differenziata",     val:"Lunedì carta · Mercoledì plastica · Venerdì organico" },
-  { icon:"🚬", lbl:"Fumatori",                   val:"Vietato all'interno. Permesso sul balcone" },
-  { icon:"🐾", lbl:"Animali",                    val:"Non ammessi animali domestici" },
-  { icon:"📞", lbl:"Problemi o Emergenze",       val:"Contatta subito Giuseppe: +39 XXX XXX XXXX" },
-];
-
-const RISTORANTI = [
-  {
-    nome: "Ristorante Al Trabocco",
-    tipo: "Pesce e frutti di mare",
-    categoria: "pesce",
-    fascia: "€€",
-    consigliato: true,
-    desc: "Ottimo pesce fresco sul mare. Il brodetto alla vastese è una specialità da non perdere.",
-    maps: "https://maps.google.com/?q=ristorante+trabocco+vasto+marina"
-  },
-  {
-    nome: "Da Nicola",
-    tipo: "Cucina abruzzese tradizionale",
-    categoria: "carne",
-    fascia: "€€",
-    consigliato: true,
-    desc: "Chitarrina fatta a mano, grigliata di carne e agnello. Ambiente autentico e familiare.",
-    maps: "https://maps.google.com/?q=da+nicola+vasto+marina"
-  },
-  {
-    nome: "Pizzeria Il Delfino",
-    tipo: "Pizza e grill",
-    categoria: "pizza",
-    fascia: "€",
-    consigliato: false,
-    desc: "Ideale per la famiglia, pizze ottime e ambiente rilassato. Ottimo rapporto qualità/prezzo.",
-    maps: "https://maps.google.com/?q=pizzeria+il+delfino+vasto+marina"
-  },
-  {
-    nome: "Bar Gelateria Adriatico",
-    tipo: "Bar · Gelati · Colazione",
-    categoria: "bar",
-    fascia: "€",
-    consigliato: true,
-    desc: "I migliori gelati artigianali della zona. Colazione eccellente. A circa 200m dall'appartamento.",
-    maps: "https://maps.google.com/?q=gelateria+adriatico+vasto+marina"
-  },
-  {
-    nome: "Pescheria e Gastronomia del Porto",
-    tipo: "Pesce fresco e rosticceria",
-    categoria: "pesce",
-    fascia: "€",
-    consigliato: false,
-    desc: "Pesce freschissimo direttamente dai pescatori locali. Ottimo per pranzi veloci.",
-    maps: "https://maps.google.com/?q=pescheria+vasto+marina"
-  },
-  {
-    nome: "Trattoria La Lampara",
-    tipo: "Cucina di pesce",
-    categoria: "pesce",
-    fascia: "€€",
-    consigliato: false,
-    desc: "Ambiente tipico marinaro, spaghetti alle vongole eccezionali e fritto di paranza freschissimo.",
-    maps: "https://maps.google.com/?q=trattoria+la+lampara+vasto+marina"
-  },
-  {
-    nome: "Pizzeria Cotto e Mangiato",
-    tipo: "Pizza al taglio e panini",
-    categoria: "pizza",
-    fascia: "€",
-    consigliato: false,
-    desc: "Pizza al taglio, arancini e panini. Perfetto per una pausa veloce o un pranzo economico.",
-    maps: "https://maps.google.com/?q=pizza+al+taglio+vasto+marina"
-  },
-];
-
-const ATTIVITA = [
-  { emoji:"🏖️", nome:"Spiagge di Vasto Marina",     desc:"Spiagge sabbiose a pochi passi dall'appartamento. Lettini e ombrelloni disponibili nei lidi convenzionati." },
-  { emoji:"🏛️", nome:"Centro Storico di Vasto",      desc:"A 5 km dal mare: Palazzo d'Avalos, il Museo Civico e panorami mozzafiato sull'Adriatico. Da non perdere!" },
-  { emoji:"🌿", nome:"Riserva di Punta Aderci",      desc:"Riserva naturale con sentieri, calette isolate e mare cristallino. Imperdibile per gli amanti della natura." },
-  { emoji:"🎣", nome:"I Trabocchi della Costa",      desc:"Le iconiche palafitte da pesca abruzzesi: molte sono diventate ristoranti caratteristici sull'acqua." },
-  { emoji:"⛵", nome:"Termoli e Isole Tremiti",      desc:"A 25 km: borgo marinaro con castello normanno. Da Termoli partono i traghetti per le bellissime Isole Tremiti." },
-  { emoji:"🚴", nome:"Ciclovia Adriatica",           desc:"Pista ciclabile lungo la costa con panorami spettacolari tra mare e pineta. Noleggio bici disponibile in loco." },
-  { emoji:"🍷", nome:"Lanciano e le Cantine",        desc:"A 40 km, tour delle cantine del Montepulciano d'Abruzzo DOC tra i borghi medievali della collina." },
-];
-
-const EVENTI = [
-  { icon:"🌸", nome:"Vasto in Fiore",              periodo:"Giugno",         desc:"Il borgo si trasforma in un grande giardino fiorito tra profumi, colori e mercatini artigiani." },
-  { icon:"🐟", nome:"Festival del Brodetto",        periodo:"Agosto",         desc:"La celebre sagra del brodetto alla vastese: degustazioni, chef, musica e cultura del mare." },
-  { icon:"🎷", nome:"Serate Jazz al Castello",      periodo:"Luglio — Agosto", desc:"Concerti jazz nel suggestivo scenario del Castello Caldoresco, con vista panoramica sull'Adriatico." },
-  { icon:"🛍️", nome:"Mercato Settimanale",          periodo:"Ogni giovedì mattina", desc:"Prodotti locali, frutta, verdura di stagione, abbigliamento e artigianato nel centro di Vasto." },
-  { icon:"🧄", nome:"Sagra della Ventricina",       periodo:"Settembre",      desc:"Degustazione del salume tipico abruzzese in un'atmosfera di festa paesana autentica." },
-];
-
-const TRASPORTI = [
-  { icon:"🚗", titolo:"In Auto",          desc:"Autostrada A14 (Adriatica), uscita Vasto Nord. Seguire indicazioni per Vasto Marina. Dall'uscita: circa 10 min (8 km)." },
-  { icon:"🚌", titolo:"Bus",              desc:"Linea Vasto–Lanciano–Pescara con fermata a 200m dall'appartamento. Orari su arpa.abruzzo.it." },
-  { icon:"🚆", titolo:"Treno",            desc:"Stazione Vasto–San Salvo a 6 km. Taxi dalla stazione: circa 15€. Treni frequenti da/verso Pescara e Ancona." },
-  { icon:"✈️", titolo:"Aeroporto Pescara", desc:"Aeroporto d'Abruzzo a 90 km (circa 1 ora di auto). Autobus e auto a noleggio disponibili all'aeroporto." },
-  { icon:"🚕", titolo:"Taxi Locale",      desc:"Radio Taxi Vasto: 0873 361340. Sempre disponibile per trasferimenti, escursioni e navette stazione." },
-  { icon:"🅿️", titolo:"Parcheggi Pubblici", desc:"Parcheggi gratuiti nelle vie limitrofe. Il vostro posto auto privato nel cortile è incluso nel soggiorno." },
-];
 
 const MAP_PLACES = [
   { icon:"🏖️", nome:"Spiaggia di Vasto Marina",     sub:"200m — a piedi",                maps:"https://maps.google.com/?q=spiaggia+vasto+marina" },
@@ -496,17 +390,6 @@ const MAP_PLACES = [
   { icon:"🌿", nome:"Riserva Punta Aderci",          sub:"3 km — riserva naturale",       maps:"https://maps.google.com/?q=riserva+punta+aderci+vasto" },
   { icon:"🏛️", nome:"Centro Storico di Vasto",       sub:"5 km — in auto",               maps:"https://maps.google.com/?q=vasto+centro+storico" },
   { icon:"🏥", nome:"Ospedale di Vasto",             sub:"6 km — Pronto Soccorso",        maps:"https://maps.google.com/?q=ospedale+vasto" },
-];
-
-const CONTATTI = [
-  { emoji:"🏠", nome:"Giuseppe (Proprietario)",          tel:"+39 XXX XXX XXXX", primary:true },
-  { emoji:"🚨", nome:"Emergenze",                         tel:"112" },
-  { emoji:"🏥", nome:"Pronto Soccorso — Ospedale Vasto", tel:"0873 308111" },
-  { emoji:"👮", nome:"Polizia Municipale Vasto",          tel:"0873 309324" },
-  { emoji:"🚒", nome:"Vigili del Fuoco",                  tel:"115" },
-  { emoji:"🚕", nome:"Taxi Vasto",                        tel:"0873 361340" },
-  { emoji:"💊", nome:"Farmacia di Vasto Marina",          tel:"+39 XXX XXX XXXX" },
-  { emoji:"🛒", nome:"Supermercato Conad",                tel:"📍 Via del Mare — 300m" },
 ];
 
 /* ═══════════════════════════════════════════════════════════
@@ -994,8 +877,8 @@ function StayCard({ guest }) {
 /* ═══════════════════════════════════════════════════════════
    ARRIVO TAB
 ═══════════════════════════════════════════════════════════ */
-function ArrivoTab() {
-  const { t } = useLang();
+function ArrivoTab({ content }) {
+  const { t, lang } = useLang();
   const [sub, setSub] = useState('guida');
 
   const STEPS = [
@@ -1007,16 +890,6 @@ function ArrivoTab() {
     { icon:"🚪", title: "Cosa fare alla partenza", desc: "Chiudere tutte le finestre e le tapparelle, spegnere luci, AC e riscaldamento. Lasciare le chiavi sul tavolo in cucina. Grazie!" },
   ];
 
-  const REGOLE = [
-    { icon:"🚬", text: <><strong>Vietato fumare all'interno.</strong> È consentito fumare solo sul balcone, usando il posacenere.</> },
-    { icon:"🐾", text: <><strong>Animali domestici non ammessi.</strong> Non è possibile ospitare animali nell'appartamento.</> },
-    { icon:"🔇", text: <><strong>Silenzio dopo le 23:00.</strong> Per rispetto dei vicini, si prega di evitare rumori dopo le 23:00.</> },
-    { icon:"🗑️", text: <><strong>Raccolta differenziata:</strong> Lunedì carta, Mercoledì plastica/vetro, Venerdì organico. I sacchi sono sotto il lavandino.</> },
-    { icon:"🌡️", text: <><strong>Riscaldamento massimo 22°C.</strong> Non superare questa temperatura per rispettare l'ambiente e i consumi.</> },
-    { icon:"🏠", text: <><strong>Rispettare i vicini.</strong> L'appartamento è in un condominio. Mantenere un comportamento rispettoso negli spazi comuni.</> },
-    { icon:"🔑", text: <><strong>Chiavi:</strong> Non duplicare le chiavi. In caso di smarrimento, contattare subito Giuseppe.</> },
-    { icon:"💧", text: <><strong>Uso responsabile delle risorse:</strong> Acqua, energia e rifiuti. Grazie per la collaborazione.</> },
-  ];
 
   return (
     <>
@@ -1045,28 +918,29 @@ function ArrivoTab() {
       {sub === 'casa' && (
         <div className="card">
           <div className="card-title">🏠 {t.casa_titolo}</div>
-          {INFO_CASA.map((item,i) => (
-            <div className="info-row" key={i}>
-              <div className="info-icon">{item.icon}</div>
-              <div>
-                <div className="info-lbl">{item.lbl}</div>
-                {item.mono
-                  ? <span className="mono">{item.val}</span>
-                  : <div className="info-val">{item.val}</div>
-                }
+          {(content.info_casa||[]).map((item,i) => {
+            const lbl = lang==='it'?item.label_it:item.label_en;
+            const val = lang==='it'?item.valore_it:item.valore_en;
+            return (
+              <div className="info-row" key={item.id||i}>
+                <div className="info-icon">{item.icona}</div>
+                <div>
+                  <div className="info-lbl">{lbl}</div>
+                  {item.mono ? <span className="mono">{val}</span> : <div className="info-val">{val}</div>}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {sub === 'regole' && (
         <div className="card">
           <div className="card-title">📋 {t.regole_titolo}</div>
-          {REGOLE.map((r,i) => (
-            <div className="rule-row" key={i}>
-              <div className="rule-icon">{r.icon}</div>
-              <div className="rule-text">{r.text}</div>
+          {(content.regole||[]).map((r,i) => (
+            <div className="rule-row" key={r.id||i}>
+              <div className="rule-icon">{r.icona}</div>
+              <div className="rule-text">{lang==='it'?r.testo_it:r.testo_en}</div>
             </div>
           ))}
         </div>
@@ -1078,8 +952,8 @@ function ArrivoTab() {
 /* ═══════════════════════════════════════════════════════════
    MANGIARE TAB
 ═══════════════════════════════════════════════════════════ */
-function MangiareTab() {
-  const { t } = useLang();
+function MangiareTab({ content }) {
+  const { t, lang } = useLang();
   const [search, setSearch] = useState('');
   const [cat,    setCat]    = useState('tutti');
 
@@ -1091,10 +965,11 @@ function MangiareTab() {
     { id: 'bar',   lbl: t.cat_bar   },
   ];
 
-  const filtered = RISTORANTI.filter(r => {
+  const filtered = (content.ristoranti||[]).filter(r => {
     const matchCat = cat === 'tutti' || r.categoria === cat;
     const q = search.toLowerCase();
-    const matchSearch = !q || r.nome.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
+    const desc = lang==='it'?r.descrizione_it:r.descrizione_en;
+    const matchSearch = !q || r.nome.toLowerCase().includes(q) || (desc||'').toLowerCase().includes(q);
     return matchCat && matchSearch;
   });
 
@@ -1115,15 +990,15 @@ function MangiareTab() {
       </div>
       {filtered.length === 0 && <div className="no-results">{t.nessun_risultato}</div>}
       {filtered.map((r,i) => (
-        <div className="rest-card" key={i}>
+        <div className="rest-card" key={r.id||i}>
           <div className="rest-head">
             <div className="rest-name">{r.nome}</div>
             <div className="rest-price">{r.fascia}</div>
           </div>
-          <div className="rest-tipo">{r.tipo}</div>
+          <div className="rest-tipo">{lang==='it'?r.tipo_it:r.tipo_en}</div>
           {r.consigliato && <div className="badge-consigliato">{t.consigliato_badge}</div>}
-          <div className="rest-desc">{r.desc}</div>
-          <a href={r.maps} target="_blank" rel="noopener noreferrer" className="maps-btn">{t.apri_maps}</a>
+          <div className="rest-desc">{lang==='it'?r.descrizione_it:r.descrizione_en}</div>
+          <a href={r.maps_url} target="_blank" rel="noopener noreferrer" className="maps-btn">{t.apri_maps}</a>
         </div>
       ))}
     </div>
@@ -1133,8 +1008,8 @@ function MangiareTab() {
 /* ═══════════════════════════════════════════════════════════
    SCOPRI TAB
 ═══════════════════════════════════════════════════════════ */
-function ScopriTab() {
-  const { t } = useLang();
+function ScopriTab({ content }) {
+  const { t, lang } = useLang();
   const [sub, setSub] = useState('attivita');
 
   return (
@@ -1148,12 +1023,12 @@ function ScopriTab() {
       {sub === 'attivita' && (
         <div className="card">
           <div className="card-title">🌊 {t.cosa_fare}</div>
-          {ATTIVITA.map((a,i) => (
-            <div className="act-row" key={i}>
+          {(content.attivita||[]).map((a,i) => (
+            <div className="act-row" key={a.id||i}>
               <div className="act-emoji">{a.emoji}</div>
               <div>
-                <div className="act-name">{a.nome}</div>
-                <div className="act-desc">{a.desc}</div>
+                <div className="act-name">{lang==='it'?a.nome_it:a.nome_en}</div>
+                <div className="act-desc">{lang==='it'?a.descrizione_it:a.descrizione_en}</div>
               </div>
             </div>
           ))}
@@ -1191,13 +1066,13 @@ function ScopriTab() {
       {sub === 'eventi' && (
         <div className="card">
           <div className="card-title">🎉 {t.eventi_titolo}</div>
-          {EVENTI.map((e,i) => (
-            <div className="event-row" key={i}>
-              <div className="event-icon">{e.icon}</div>
+          {(content.eventi||[]).map((e,i) => (
+            <div className="event-row" key={e.id||i}>
+              <div className="event-icon">{e.icona}</div>
               <div>
-                <div className="event-name">{e.nome}</div>
-                <div className="event-period">{e.periodo}</div>
-                <div className="event-desc">{e.desc}</div>
+                <div className="event-name">{lang==='it'?e.nome_it:e.nome_en}</div>
+                <div className="event-period">{lang==='it'?e.periodo_it:e.periodo_en}</div>
+                <div className="event-desc">{lang==='it'?e.descrizione_it:e.descrizione_en}</div>
               </div>
             </div>
           ))}
@@ -1207,12 +1082,12 @@ function ScopriTab() {
       {sub === 'trasporti' && (
         <div className="card">
           <div className="card-title">🚌 {t.trasporti_titolo}</div>
-          {TRASPORTI.map((tr,i) => (
-            <div className="transport-row" key={i}>
-              <div className="transport-icon">{tr.icon}</div>
+          {(content.trasporti||[]).map((tr,i) => (
+            <div className="transport-row" key={tr.id||i}>
+              <div className="transport-icon">{tr.icona}</div>
               <div>
-                <div className="transport-title">{tr.titolo}</div>
-                <div className="transport-desc">{tr.desc}</div>
+                <div className="transport-title">{lang==='it'?tr.titolo_it:tr.titolo_en}</div>
+                <div className="transport-desc">{lang==='it'?tr.descrizione_it:tr.descrizione_en}</div>
               </div>
             </div>
           ))}
@@ -1225,7 +1100,7 @@ function ScopriTab() {
 /* ═══════════════════════════════════════════════════════════
    CONTATTI TAB
 ═══════════════════════════════════════════════════════════ */
-function ContattiTab() {
+function ContattiTab({ content }) {
   const { t } = useLang();
   function href(tel) {
     if (/^[\d\s\+]+$/.test(tel)) return `tel:${tel.replace(/\s/g,'')}`;
@@ -1234,12 +1109,12 @@ function ContattiTab() {
   return (
     <div className="card">
       <div className="card-title">📞 {t.contatti_titolo}</div>
-      {CONTATTI.map((c,i) => (
-        <a key={i} href={href(c.tel)} className={`contact-link${c.primary?' primary':''}`}>
-          <div className="contact-emoji">{c.emoji}</div>
+      {(content.contatti||[]).map((ct,i) => (
+        <a key={ct.id||i} href={href(ct.telefono)} className={`contact-link${ct.primario?' primary':''}`}>
+          <div className="contact-emoji">{ct.emoji}</div>
           <div>
-            <div className="contact-name">{c.nome}</div>
-            <div className="contact-tel">{c.tel}</div>
+            <div className="contact-name">{ct.nome}</div>
+            <div className="contact-tel">{ct.telefono}</div>
           </div>
         </a>
       ))}
@@ -1444,6 +1319,22 @@ function AdminPanel({ onLogout }) {
 function Dashboard({ guest, onLogout }) {
   const { t, lang, setLang } = useLang();
   const [tab, setTab] = useState('home');
+  const [content, setContent] = useState(null);
+
+  useEffect(() => {
+    Promise.all([
+      sb.from('ristoranti').select('*').order('ordine'),
+      sb.from('attivita').select('*').order('ordine'),
+      sb.from('eventi').select('*').order('ordine'),
+      sb.from('trasporti').select('*').order('ordine'),
+      sb.from('info_casa').select('*').order('ordine'),
+      sb.from('regole').select('*').order('ordine'),
+      sb.from('contatti').select('*').order('ordine'),
+    ]).then(([r,a,e,tr,ic,reg,co]) => setContent({
+      ristoranti: r.data||[], attivita: a.data||[], eventi: e.data||[],
+      trasporti: tr.data||[], info_casa: ic.data||[], regole: reg.data||[], contatti: co.data||[]
+    }));
+  }, []);
 
   useEffect(() => {
     gsap.from('.dash-header',  { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
@@ -1482,11 +1373,14 @@ function Dashboard({ guest, onLogout }) {
       </div>
 
       <div className="content">
-        {tab === 'home'     && <><WeatherCard /><StayCard guest={guest} /></>}
-        {tab === 'arrivo'   && <ArrivoTab />}
-        {tab === 'mangiare' && <MangiareTab />}
-        {tab === 'scopri'   && <ScopriTab />}
-        {tab === 'contatti' && <ContattiTab />}
+        {tab === 'home' && <><WeatherCard /><StayCard guest={guest} /></>}
+        {tab !== 'home' && !content && (
+          <div className="loading" style={{marginTop:'40px'}}><div className="spinner"/><br/>Caricamento contenuti...</div>
+        )}
+        {tab === 'arrivo'   && content && <ArrivoTab   content={content} />}
+        {tab === 'mangiare' && content && <MangiareTab content={content} />}
+        {tab === 'scopri'   && content && <ScopriTab   content={content} />}
+        {tab === 'contatti' && content && <ContattiTab content={content} />}
       </div>
 
       <div className="bottom-nav">

@@ -613,7 +613,9 @@ const TRANSLATIONS = {
     // Login
     username_lbl: "Nome utente", password_lbl: "Password", signin_btn: "Accedi",
     login_sub: "L'incanto del mare, il comfort di casa.",
-    login_err: "Credenziali non corrette. Contatta Giuseppe per assistenza.",
+    login_err_pre: "Credenziali non corrette.",
+    login_err_link: "Contattaci per assistenza immediata.",
+    login_err_wa: "Non riesco ad accedere all%27app Marina Azul 15",
     logout: "Esci",
     // Sezioni
     meteo_titolo: "Meteo oggi — Vasto Marina",
@@ -681,7 +683,9 @@ const TRANSLATIONS = {
     home: "Home", arrivo: "Arrival", mangiare: "Eat", scopri: "Explore", contatti: "Contacts",
     username_lbl: "Username", password_lbl: "Password", signin_btn: "Sign in",
     login_sub: "The charm of the sea, the comfort of home.",
-    login_err: "Wrong credentials. Contact Giuseppe for help.",
+    login_err_pre: "Wrong credentials.",
+    login_err_link: "Contact us for immediate assistance.",
+    login_err_wa: "I can%27t log in to the Marina Azul 15 app",
     logout: "Sign out",
     meteo_titolo: "Weather today — Vasto Marina",
     soggiorno_titolo: "Your Stay",
@@ -875,7 +879,7 @@ function LoginPage({ onLogin }) {
       }
     } catch(ex) {}
     setLoading(false);
-    setErr(t.login_err);
+    setErr(true);
   }
 
   useEffect(() => {
@@ -897,7 +901,14 @@ function LoginPage({ onLogin }) {
           <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" />
           <p>{t.login_sub}</p>
         </div>
-        {err && <div className="login-error">⚠️ {err}</div>}
+        {err && (
+          <div className="login-error">
+            ⚠️ {t.login_err_pre}{' '}
+            <a href={'https://wa.me/393792651607?text=' + t.login_err_wa} target="_blank" rel="noopener noreferrer" style={{color:'#c53030',fontWeight:'700',textDecoration:'underline'}}>
+              {t.login_err_link}
+            </a>
+          </div>
+        )}
         <form onSubmit={submit}>
           <div className="form-group">
             <label>{t.username_lbl}</label>

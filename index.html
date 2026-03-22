@@ -497,6 +497,24 @@
     .guest-dates { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     .guest-user { font-size: 11px; color: var(--primary); margin-top: 1px; }
 
+    /* PREVIEW BANNER */
+    .preview-overlay { position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; }
+    .preview-banner {
+      background: linear-gradient(90deg, #e0a020, #c88c10);
+      color: white; padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    .preview-banner-text { display: flex; align-items: center; gap: 8px; }
+    .preview-exit {
+      background: white; color: #c88c10; border: none; border-radius: 20px;
+      padding: 5px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .preview-scroll { flex: 1; overflow-y: auto; }
+
     /* TRACKING TAB */
     .track-chart-wrap {
       background: var(--white); border: 1px solid var(--border); border-radius: 12px;
@@ -2130,6 +2148,27 @@ function TrackingSection() {
 function AdminPanel({ onLogout }) {
   const { t, lang, setLang } = useLang();
   const [adminTab, setAdminTab] = useState('ospiti');
+  const [preview, setPreview]   = useState(false);
+
+  const MOCK_GUEST = {
+    name: 'Ospite Demo',
+    username: 'demo',
+    checkin:  new Date().toISOString().slice(0,10),
+    checkout: new Date(Date.now() + 7*86400000).toISOString().slice(0,10),
+    isAdmin:  false,
+  };
+
+  if (preview) return (
+    <div className="preview-overlay">
+      <div className="preview-banner">
+        <span className="preview-banner-text">👁 Modalità preview — stai vedendo l'app come un ospite</span>
+        <button className="preview-exit" onClick={() => setPreview(false)}>✕ Esci dalla preview</button>
+      </div>
+      <div className="preview-scroll">
+        <Dashboard guest={MOCK_GUEST} onLogout={() => setPreview(false)} />
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
@@ -2161,6 +2200,7 @@ function AdminPanel({ onLogout }) {
             <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" style={{width:'150px', filter:'brightness(0) invert(1)'}} />
           </div>
           <div className="header-right">
+            <button className="lang-toggle" onClick={() => setPreview(true)} title="Preview ospite" style={{fontSize:'15px'}}>👁</button>
             <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it' ? <img src='https://flagcdn.com/24x18/gb.png' alt='EN' style={{height:'16px',verticalAlign:'middle',borderRadius:'2px'}} /> : <img src='https://flagcdn.com/24x18/it.png' alt='IT' style={{height:'16px',verticalAlign:'middle',borderRadius:'2px'}} />}</button>
             <button className="logout-btn" onClick={onLogout}>{t.logout}</button>
           </div>

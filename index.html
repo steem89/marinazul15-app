@@ -2158,21 +2158,11 @@ function AdminPanel({ onLogout }) {
     isAdmin:  false,
   };
 
+  const navRef = useRef(null);
+
   useEffect(() => {
     if (!preview) gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
   }, [preview]);
-
-  if (preview) return (
-    <div className="preview-overlay">
-      <div className="preview-banner">
-        <span className="preview-banner-text">👁 Modalità preview — stai vedendo l'app come un ospite</span>
-        <button className="preview-exit" onClick={() => setPreview(false)}>✕ Esci dalla preview</button>
-      </div>
-      <div className="preview-scroll">
-        <Dashboard guest={MOCK_GUEST} onLogout={() => setPreview(false)} />
-      </div>
-    </div>
-  );
 
   const TABS_ROW1 = [
     { id:'ospiti',   icon:'👥', lbl:'Ospiti'   },
@@ -2187,10 +2177,22 @@ function AdminPanel({ onLogout }) {
     { id:'regole',     icon:'📋', lbl:'Regole'     },
     { id:'contatti',   icon:'📞', lbl:'Contatti'   },
   ];
-  const navRef = useRef(null);
+
   function scrollNav(dir) {
     if (navRef.current) navRef.current.scrollBy({ left: dir * 140, behavior: 'smooth' });
   }
+
+  if (preview) return (
+    <div className="preview-overlay">
+      <div className="preview-banner">
+        <span className="preview-banner-text">👁 Modalità preview — stai vedendo l'app come un ospite</span>
+        <button className="preview-exit" onClick={() => setPreview(false)}>✕ Esci dalla preview</button>
+      </div>
+      <div className="preview-scroll">
+        <Dashboard guest={MOCK_GUEST} onLogout={() => setPreview(false)} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="dashboard">

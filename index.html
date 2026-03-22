@@ -1985,43 +1985,45 @@ function EventsChart({ rows }) {
 function TrackingSection() {
   const [rows, setRows]       = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterDate, setFilterDate] = useState('');
+  const [filterUser, setFilterUser] = useState('');
 
   async function load() {
-    const { data } = await sb.from('analytics').select('*').order('created_at', { ascending: false }).limit(300);
+    const { data } = await sb.from('analytics').select('*').order('created_at', { ascending: false }).limit(500);
     setRows(data || []);
     setLoading(false);
   }
   useEffect(() => {
     load();
-    // poll every 15s
     const timer = setInterval(load, 15000);
-    // realtime subscription
     const channel = sb.channel('analytics-rt')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'analytics' }, () => load())
       .subscribe();
-    return () => {
-      clearInterval(timer);
-      sb.removeChannel(channel);
-    };
+    return () => { clearInterval(timer); sb.removeChannel(channel); };
   }, []);
 
   if (loading) return <div className="loading"><div className="spinner"/></div>;
 
-  const total   = rows.length;
-  const logins  = rows.filter(r => r.evento === 'login').length;
-  const users   = [...new Set(rows.filter(r => r.username).map(r => r.username))].length;
-  const itCount = rows.filter(r => r.lang === 'it').length;
-  const enCount = rows.filter(r => r.lang === 'en').length;
+  // apply filters
+  const filtered = rows.filter(r => {
+    if (filterDate && (r.created_at || '').slice(0, 10) !== filterDate) return false;
+    if (filterUser && !(r.username || '').toLowerCase().includes(filterUser.toLowerCase())) return false;
+    return true;
+  });
 
-  // tab usage
-  const tabRows = rows.filter(r => r.evento === 'tab_change');
+  const total   = filtered.length;
+  const logins  = filtered.filter(r => r.evento === 'login').length;
+  const users   = [...new Set(filtered.filter(r => r.username).map(r => r.username))].length;
+  const itCount = filtered.filter(r => r.lang === 'it').length;
+  const enCount = filtered.filter(r => r.lang === 'en').length;
+
+  const tabRows = filtered.filter(r => r.evento === 'tab_change');
   const tabCount = {};
   tabRows.forEach(r => { tabCount[r.dato] = (tabCount[r.dato] || 0) + 1; });
   const tabSorted = Object.entries(tabCount).sort((a,b) => b[1]-a[1]);
   const tabMax = tabSorted[0]?.[1] || 1;
 
-  // recent 30
-  const recent = rows.slice(0, 30);
+  const recent = filtered.slice(0, 50);
 
   function fmtTime(ts) {
     const d = new Date(ts);
@@ -2029,24 +2031,39 @@ function TrackingSection() {
            d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
   }
 
-  const EVT_LABELS = {
-    login: '🔑 Login',
-    tab_change: '📑 Tab',
-    lang_change: '🌐 Lingua',
-  };
+  const EVT_LABELS = { login:'🔑 Login', tab_change:'📑 Tab', lang_change:'🌐 Lingua' };
+
+  const allUsers = [...new Set(rows.filter(r => r.username).map(r => r.username))].sort();
 
   return (
     <div>
-      <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
-        <button className="cancel-btn" onClick={load}>↻ Aggiorna</button>
+      {/* FILTRI */}
+      <div style={{display:'flex',gap:'10px',marginBottom:'14px',flexWrap:'wrap',alignItems:'flex-end'}}>
+        <div className="afield" style={{flex:'1',minWidth:'140px'}}>
+          <label>Filtra per data</label>
+          <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} />
+        </div>
+        <div className="afield" style={{flex:'1',minWidth:'140px'}}>
+          <label>Filtra per ospite</label>
+          <select value={filterUser} onChange={e => setFilterUser(e.target.value)}>
+            <option value="">Tutti</option>
+            {allUsers.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+        </div>
+        <div style={{display:'flex',gap:'8px',paddingBottom:'1px'}}>
+          {(filterDate || filterUser) &&
+            <button className="del-btn" onClick={() => { setFilterDate(''); setFilterUser(''); }}>✕ Reset</button>
+          }
+          <button className="cancel-btn" onClick={load}>↻ Aggiorna</button>
+        </div>
       </div>
 
-      <EventsChart rows={rows} />
+      <EventsChart rows={filterDate || filterUser ? filtered : rows} />
 
       <div className="track-grid">
         <div className="track-stat">
           <div className="track-stat-num">{total}</div>
-          <div className="track-stat-lbl">Eventi totali</div>
+          <div className="track-stat-lbl">Eventi{filterDate || filterUser ? ' filtrati' : ' totali'}</div>
         </div>
         <div className="track-stat">
           <div className="track-stat-num">{logins}</div>
@@ -2079,9 +2096,10 @@ function TrackingSection() {
 
       <div className="track-log">
         <div className="track-log-header">
-          <span className="track-log-title">Ultimi 30 eventi</span>
+          <span className="track-log-title">Ultimi {recent.length} eventi</span>
           <span className="asection-count">{recent.length}</span>
         </div>
+        {recent.length === 0 && <p style={{padding:'16px',color:'var(--text-muted)',fontSize:'13px'}}>Nessun evento trovato.</p>}
         {recent.map(r => (
           <div className="track-log-row" key={r.id}>
             <span className={'track-pill ' + r.evento}>{EVT_LABELS[r.evento] || r.evento}</span>
@@ -2137,7 +2155,7 @@ function AdminPanel({ onLogout }) {
         </div>
         <div className="admin-badge">{t.admin_badge}</div>
         <div className="welcome-text">{t.admin_panel}</div>
-        <div className="welcome-sub">Marina Azul 15 — Backend · Supabase</div>
+        <div className="welcome-sub">Marina Azul 15 — Backend</div>
       </div>
 
       <div className="content">

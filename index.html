@@ -1123,195 +1123,572 @@ function ContattiTab({ content }) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ADMIN PANEL
+   ADMIN — SEZIONE GENERICA
 ═══════════════════════════════════════════════════════════ */
-function AdminPanel({ onLogout }) {
-  const { t, lang, setLang } = useLang();
-  const [guests, setGuests]   = useState([]);
-  const [loadingList, setLoadingList] = useState(true);
-  const [saving, setSaving]   = useState(false);
-  const [msg, setMsg]         = useState({ text:'', ok:true });
-  const [editId, setEditId]   = useState(null);
+function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }) {
+  orderField = orderField || 'ordine';
+  const [items, setItems]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [form, setForm]         = useState(emptyForm);
+  const [editId, setEditId]     = useState(null);
   const [editData, setEditData] = useState({});
-  const [form, setForm]       = useState({ username:'', password:'', name:'', checkin:'', checkout:'' });
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState('');
 
+  async function load() {
+    setLoading(true);
+    const { data } = await sb.from(table).select('*').order(orderField, { nullsFirst: false });
+    setItems(data || []);
+    setLoading(false);
+  }
+  useEffect(() => { load(); }, [table]);
+
+  function flash(m) { setMsg(m); setTimeout(() => setMsg(''), 3000); }
+
+  async function add(e) {
+    e.preventDefault();
+    setSaving(true);
+    const { error } = await sb.from(table).insert(form);
+    setSaving(false);
+    if (error) { flash('❌ ' + error.message); return; }
+    flash('✅ Aggiunto!');
+    setForm(emptyForm);
+    load();
+  }
+
+  async function save(id) {
+    setSaving(true);
+    const { error } = await sb.from(table).update(editData).eq('id', id);
+    setSaving(false);
+    if (error) { flash('❌ ' + error.message); return; }
+    flash('✅ Salvato!');
+    setEditId(null);
+    load();
+  }
+
+  async function del(id) {
+    if (!window.confirm('Eliminare questo elemento?')) return;
+    await sb.from(table).delete().eq('id', id);
+    flash('🗑️ Eliminato');
+    load();
+  }
+
+  return (
+    <div>
+      {msg && <div className={msg.startsWith('❌') ? 'error-msg' : 'success-msg'} style={{marginBottom:'12px'}}>{msg}</div>}
+      <div className="card" style={{marginBottom:'14px'}}>
+        <div className="card-title" style={{marginBottom:'12px'}}>Elementi ({items.length})</div>
+        {loading && <div className="loading"><div className="spinner"/></div>}
+        {!loading && items.length === 0 && <p style={{color:'var(--text-muted)',fontSize:'13px'}}>Nessun elemento.</p>}
+        {items.map(item => {
+          const isEditing = editId === item.id;
+          return (
+            <div key={item.id}>
+              {isEditing ? (
+                <div className="asection-edit-box">
+                  {renderFields(editData, d => setEditData(prev => ({...prev, ...d})))}
+                  <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                    <button className="add-btn" style={{padding:'7px 18px'}} onClick={() => save(item.id)} disabled={saving}>{saving ? '...' : 'Salva'}</button>
+                    <button className="del-btn" style={{background:'transparent',color:'var(--text-muted)',border:'1px solid var(--border)'}} onClick={() => setEditId(null)}>Annulla</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="asection-item">
+                  <div className="asection-item-info">{renderItem(item)}</div>
+                  <div className="asection-btns">
+                    <button className="edit-btn" onClick={() => { setEditId(item.id); setEditData({...item}); }}>✏️</button>
+                    <button className="del-btn" onClick={() => del(item.id)}>✕</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="admin-form">
+        <div className="card-title" style={{color:'var(--gold)',marginBottom:'12px'}}>➕ Aggiungi nuovo</div>
+        <form onSubmit={add}>
+          {renderFields(form, d => setForm(prev => ({...prev, ...d})))}
+          <button type="submit" className="add-btn" disabled={saving}>{saving ? '...' : 'Aggiungi'}</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — OSPITI
+═══════════════════════════════════════════════════════════ */
+function OspitiSection() {
+  const [guests, setGuests]     = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [msg, setMsg]           = useState({ text:'', ok:true });
+  const [editId, setEditId]     = useState(null);
+  const [editData, setEditData] = useState({});
   const EMPTY = { username:'', password:'', name:'', checkin:'', checkout:'' };
+  const [form, setForm]         = useState(EMPTY);
 
-  async function loadGuests() {
-    setLoadingList(true);
+  async function load() {
+    setLoading(true);
     const { data } = await sb.from('ospiti').select('*').order('checkin');
     setGuests(data || []);
-    setLoadingList(false);
+    setLoading(false);
   }
+  useEffect(() => { load(); }, []);
 
-  useEffect(() => {
-    loadGuests();
-    gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
-    gsap.from('.card, .admin-form', { y: 22, opacity: 0, duration: 0.4, stagger: 0.09, ease: 'power2.out', clearProps: 'all', delay: 0.15 });
-  }, []);
+  function flash(text, ok) { ok = ok !== false; setMsg({text,ok}); setTimeout(() => setMsg({text:'',ok:true}), 3500); }
 
-  function flash(text, ok=true) {
-    setMsg({ text, ok });
-    setTimeout(() => setMsg({ text:'', ok:true }), 3500);
-  }
-
-  async function addGuest(e) {
+  async function add(e) {
     e.preventDefault();
     setSaving(true);
     const { error } = await sb.from('ospiti').insert({
-      username: form.username.trim().toLowerCase(),
-      password: form.password,
-      name:     form.name,
-      checkin:  form.checkin,
-      checkout: form.checkout,
+      username: form.username.trim().toLowerCase(), password: form.password,
+      name: form.name, checkin: form.checkin, checkout: form.checkout,
     });
     setSaving(false);
     if (error) { flash('❌ ' + error.message, false); return; }
-    flash('✅ ' + t.ospite_aggiunto);
+    flash('✅ Ospite aggiunto!');
     setForm(EMPTY);
-    loadGuests();
+    load();
   }
 
   async function saveEdit(id) {
     setSaving(true);
     const { error } = await sb.from('ospiti').update({
-      name:     editData.name,
-      password: editData.password,
-      checkin:  editData.checkin,
-      checkout: editData.checkout,
+      name: editData.name, password: editData.password,
+      checkin: editData.checkin, checkout: editData.checkout,
     }).eq('id', id);
     setSaving(false);
     if (error) { flash('❌ ' + error.message, false); return; }
     flash('✅ Modifiche salvate');
     setEditId(null);
-    loadGuests();
+    load();
   }
 
-  async function delGuest(id, name) {
-    if (!window.confirm(`Eliminare ${name}?`)) return;
+  async function del(id, name) {
+    if (!window.confirm('Eliminare ' + name + '?')) return;
     await sb.from('ospiti').delete().eq('id', id);
     flash('🗑️ Ospite eliminato');
-    loadGuests();
+    load();
   }
+
+  return (
+    <div>
+      {msg.text && <div className={msg.ok ? 'success-msg' : 'error-msg'} style={{marginBottom:'12px'}}>{msg.text}</div>}
+      <div className="card" style={{marginBottom:'14px'}}>
+        <div className="card-title" style={{marginBottom:'12px'}}>Ospiti registrati ({guests.length})</div>
+        {loading && <div className="loading"><div className="spinner"/></div>}
+        {guests.map(g => {
+          const nights = g.checkin && g.checkout ? Math.round((new Date(g.checkout) - new Date(g.checkin)) / 86400000) : '?';
+          const isEditing = editId === g.id;
+          return (
+            <div className="guest-row" key={g.id}>
+              {isEditing ? (
+                <div style={{flex:1}}>
+                  <div className="arow" style={{marginBottom:'8px'}}>
+                    <div className="afield"><label>Nome</label><input type="text" value={editData.name} onChange={e => setEditData(d => ({...d, name: e.target.value}))} /></div>
+                    <div className="afield"><label>Password</label><input type="text" value={editData.password} onChange={e => setEditData(d => ({...d, password: e.target.value}))} /></div>
+                  </div>
+                  <div className="arow" style={{marginBottom:'10px'}}>
+                    <div className="afield"><label>Check-in</label><input type="date" value={editData.checkin} onChange={e => setEditData(d => ({...d, checkin: e.target.value}))} /></div>
+                    <div className="afield"><label>Check-out</label><input type="date" value={editData.checkout} onChange={e => setEditData(d => ({...d, checkout: e.target.value}))} /></div>
+                  </div>
+                  <div style={{display:'flex', gap:'8px'}}>
+                    <button className="add-btn" style={{padding:'7px 16px'}} onClick={() => saveEdit(g.id)} disabled={saving}>{saving ? '...' : 'Salva'}</button>
+                    <button className="del-btn" style={{background:'transparent', color:'var(--text-muted)', border:'1px solid var(--border)'}} onClick={() => setEditId(null)}>Annulla</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="guest-info">
+                    <div className="guest-name">{g.name}</div>
+                    <div className="guest-user">@{g.username}</div>
+                    <div className="guest-dates">{g.checkin} → {g.checkout} ({nights} notti)</div>
+                  </div>
+                  <div style={{display:'flex', gap:'6px', flexShrink:0}}>
+                    <button className="edit-btn" onClick={() => { setEditId(g.id); setEditData({name:g.name, password:g.password, checkin:g.checkin, checkout:g.checkout}); }}>✏️</button>
+                    <button className="del-btn" onClick={() => del(g.id, g.name)}>✕</button>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="admin-form">
+        <div className="card-title" style={{color:'var(--gold)', marginBottom:'12px'}}>➕ Aggiungi ospite</div>
+        <form onSubmit={add}>
+          <div className="arow">
+            <div className="afield"><label>Nome completo</label><input type="text" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} placeholder="Es. Famiglia Rossi" required /></div>
+            <div className="afield"><label>Username</label><input type="text" value={form.username} onChange={e => setForm(f => ({...f, username: e.target.value}))} placeholder="Es. rossi" autoCapitalize="none" required /></div>
+          </div>
+          <div className="arow">
+            <div className="afield"><label>Password</label><input type="text" value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} placeholder="Es. mare2026" required /></div>
+            <div className="afield"><label>Check-in</label><input type="date" value={form.checkin} onChange={e => setForm(f => ({...f, checkin: e.target.value}))} required /></div>
+          </div>
+          <div className="arow" style={{marginBottom:'12px'}}>
+            <div className="afield"><label>Check-out</label><input type="date" value={form.checkout} onChange={e => setForm(f => ({...f, checkout: e.target.value}))} required /></div>
+            <div></div>
+          </div>
+          <button type="submit" className="add-btn" disabled={saving}>{saving ? '...' : 'Aggiungi'}</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — RISTORANTI
+═══════════════════════════════════════════════════════════ */
+function RistorantiSection() {
+  const EMPTY = { nome:'', tipo_it:'', tipo_en:'', descrizione_it:'', descrizione_en:'', fascia:'€€', maps_url:'', categoria:'pesce', consigliato:false, ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Nome</label><input type="text" value={data.nome||''} onChange={e => set({nome: e.target.value})} required /></div>
+          <div className="afield"><label>Fascia</label>
+            <select value={data.fascia||'€€'} onChange={e => set({fascia: e.target.value})}>
+              <option value="€">€</option><option value="€€">€€</option><option value="€€€">€€€</option>
+            </select>
+          </div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Categoria</label>
+            <select value={data.categoria||'altro'} onChange={e => set({categoria: e.target.value})}>
+              <option value="pesce">🐟 Pesce</option>
+              <option value="carne">🥩 Carne</option>
+              <option value="pizza">🍕 Pizza</option>
+              <option value="bar">☕ Bar</option>
+              <option value="altro">Altro</option>
+            </select>
+          </div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Tipo 🇮🇹</label><input type="text" value={data.tipo_it||''} onChange={e => set({tipo_it: e.target.value})} placeholder="Es. 🐟 Pesce e frutti di mare" /></div>
+          <div className="afield"><label>Tipo 🇬🇧</label><input type="text" value={data.tipo_en||''} onChange={e => set({tipo_en: e.target.value})} placeholder="Es. 🐟 Fish and seafood" /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
+          <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
+        </div>
+        <div className="afield"><label>URL Google Maps</label><input type="text" value={data.maps_url||''} onChange={e => set({maps_url: e.target.value})} placeholder="https://maps.google.com/?q=..." /></div>
+        <div className="acheck">
+          <input type="checkbox" id="rist_cons" checked={!!data.consigliato} onChange={e => set({consigliato: e.target.checked})} />
+          <label htmlFor="rist_cons">⭐ Consigliato</label>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="ristoranti"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.nome} <span style={{color:'var(--primary)', fontWeight:'400'}}>{item.fascia}</span></div>
+          <div className="asection-item-sub">{item.categoria}{item.consigliato ? ' · ⭐ consigliato' : ''}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — ATTIVITA
+═══════════════════════════════════════════════════════════ */
+function AttivitaSection() {
+  const EMPTY = { emoji:'', nome_it:'', nome_en:'', descrizione_it:'', descrizione_en:'', ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Emoji</label><input type="text" value={data.emoji||''} onChange={e => set({emoji: e.target.value})} placeholder="Es. 🏖️" /></div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Nome 🇮🇹</label><input type="text" value={data.nome_it||''} onChange={e => set({nome_it: e.target.value})} required /></div>
+          <div className="afield"><label>Nome 🇬🇧</label><input type="text" value={data.nome_en||''} onChange={e => set({nome_en: e.target.value})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
+          <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="attivita"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.emoji} {item.nome_it}</div>
+          <div className="asection-item-sub">{(item.nome_en||'').slice(0,60)}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — EVENTI
+═══════════════════════════════════════════════════════════ */
+function EventiSection() {
+  const EMPTY = { icona:'', nome_it:'', nome_en:'', periodo_it:'', periodo_en:'', descrizione_it:'', descrizione_en:'', ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 🌸" /></div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Nome 🇮🇹</label><input type="text" value={data.nome_it||''} onChange={e => set({nome_it: e.target.value})} required /></div>
+          <div className="afield"><label>Nome 🇬🇧</label><input type="text" value={data.nome_en||''} onChange={e => set({nome_en: e.target.value})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Periodo 🇮🇹</label><input type="text" value={data.periodo_it||''} onChange={e => set({periodo_it: e.target.value})} placeholder="Es. Agosto" /></div>
+          <div className="afield"><label>Periodo 🇬🇧</label><input type="text" value={data.periodo_en||''} onChange={e => set({periodo_en: e.target.value})} placeholder="Es. August" /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
+          <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="eventi"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.icona} {item.nome_it}</div>
+          <div className="asection-item-sub">{item.periodo_it}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — TRASPORTI
+═══════════════════════════════════════════════════════════ */
+function TrasportiSection() {
+  const EMPTY = { icona:'', titolo_it:'', titolo_en:'', descrizione_it:'', descrizione_en:'', ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 🚗" /></div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Titolo 🇮🇹</label><input type="text" value={data.titolo_it||''} onChange={e => set({titolo_it: e.target.value})} required /></div>
+          <div className="afield"><label>Titolo 🇬🇧</label><input type="text" value={data.titolo_en||''} onChange={e => set({titolo_en: e.target.value})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
+          <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="trasporti"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.icona} {item.titolo_it}</div>
+          <div className="asection-item-sub">{(item.titolo_en||'').slice(0,60)}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — INFO CASA
+═══════════════════════════════════════════════════════════ */
+function InfoCasaSection() {
+  const EMPTY = { icona:'', label_it:'', label_en:'', valore_it:'', valore_en:'', mono:false, ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 📶" /></div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Label 🇮🇹</label><input type="text" value={data.label_it||''} onChange={e => set({label_it: e.target.value})} required /></div>
+          <div className="afield"><label>Label 🇬🇧</label><input type="text" value={data.label_en||''} onChange={e => set({label_en: e.target.value})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Valore 🇮🇹</label><input type="text" value={data.valore_it||''} onChange={e => set({valore_it: e.target.value})} /></div>
+          <div className="afield"><label>Valore 🇬🇧</label><input type="text" value={data.valore_en||''} onChange={e => set({valore_en: e.target.value})} /></div>
+        </div>
+        <div className="acheck">
+          <input type="checkbox" id="infocasa_mono" checked={!!data.mono} onChange={e => set({mono: e.target.checked})} />
+          <label htmlFor="infocasa_mono">Mostra come codice (font monospace)</label>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="info_casa"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.icona} {item.label_it}</div>
+          <div className="asection-item-sub">{(item.valore_it||'').slice(0,60)}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — REGOLE
+═══════════════════════════════════════════════════════════ */
+function RegoleSection() {
+  const EMPTY = { icona:'', testo_it:'', testo_en:'', ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 🚬" /></div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Testo 🇮🇹</label><textarea value={data.testo_it||''} onChange={e => set({testo_it: e.target.value})} required /></div>
+          <div className="afield"><label>Testo 🇬🇧</label><textarea value={data.testo_en||''} onChange={e => set({testo_en: e.target.value})} /></div>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="regole"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.icona} {(item.testo_it||'').slice(0,60)}{(item.testo_it||'').length > 60 ? '...' : ''}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — CONTATTI
+═══════════════════════════════════════════════════════════ */
+function ContattiAdminSection() {
+  const EMPTY = { emoji:'', nome:'', telefono:'', primario:false, ordine:0 };
+  function fields(data, set) {
+    return (
+      <>
+        <div className="arow">
+          <div className="afield"><label>Emoji</label><input type="text" value={data.emoji||''} onChange={e => set({emoji: e.target.value})} placeholder="Es. 🏠" /></div>
+          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+        </div>
+        <div className="arow">
+          <div className="afield"><label>Nome</label><input type="text" value={data.nome||''} onChange={e => set({nome: e.target.value})} required /></div>
+          <div className="afield"><label>Telefono</label><input type="text" value={data.telefono||''} onChange={e => set({telefono: e.target.value})} placeholder="+39 000 000 0000" /></div>
+        </div>
+        <div className="acheck">
+          <input type="checkbox" id="cont_prim" checked={!!data.primario} onChange={e => set({primario: e.target.checked})} />
+          <label htmlFor="cont_prim">Contatto primario (evidenziato)</label>
+        </div>
+      </>
+    );
+  }
+  return (
+    <AdminSection
+      table="contatti"
+      emptyForm={EMPTY}
+      renderItem={item => (
+        <div>
+          <div className="asection-item-title">{item.emoji} {item.nome}</div>
+          <div className="asection-item-sub">{item.telefono}{item.primario ? ' · ★ primario' : ''}</div>
+        </div>
+      )}
+      renderFields={fields}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN PANEL
+═══════════════════════════════════════════════════════════ */
+function AdminPanel({ onLogout }) {
+  const { t, lang, setLang } = useLang();
+  const [adminTab, setAdminTab] = useState('ospiti');
+
+  useEffect(() => {
+    gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
+  }, []);
+
+  const TABS = [
+    { id:'ospiti',     icon:'👥', lbl:'Ospiti'     },
+    { id:'ristoranti', icon:'🍽️', lbl:'Ristoranti' },
+    { id:'attivita',   icon:'🌊', lbl:'Attività'   },
+    { id:'eventi',     icon:'🎉', lbl:'Eventi'     },
+    { id:'trasporti',  icon:'🚗', lbl:'Trasporti'  },
+    { id:'infocasa',   icon:'🏠', lbl:'Info Casa'  },
+    { id:'regole',     icon:'📋', lbl:'Regole'     },
+    { id:'contatti',   icon:'📞', lbl:'Contatti'   },
+  ];
 
   return (
     <div className="dashboard">
       <div className="admin-header">
         <div className="header-top">
           <div className="header-logo">
-            <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" style={{width:'150px',filter:'brightness(0) invert(1)'}} />
+            <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" style={{width:'150px', filter:'brightness(0) invert(1)'}} />
           </div>
           <div className="header-right">
-            <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it'?<img src='https://flagcdn.com/24x18/gb.png' alt='EN' style={{height:'16px',verticalAlign:'middle',borderRadius:'2px'}} />:<img src='https://flagcdn.com/24x18/it.png' alt='IT' style={{height:'16px',verticalAlign:'middle',borderRadius:'2px'}} />}</button>
+            <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it' ? <img src='https://flagcdn.com/24x18/gb.png' alt='EN' style={{height:'16px',verticalAlign:'middle',borderRadius:'2px'}} /> : <img src='https://flagcdn.com/24x18/it.png' alt='IT' style={{height:'16px',verticalAlign:'middle',borderRadius:'2px'}} />}</button>
             <button className="logout-btn" onClick={onLogout}>{t.logout}</button>
           </div>
         </div>
         <div className="admin-badge">{t.admin_badge}</div>
         <div className="welcome-text">{t.admin_panel}</div>
-        <div className="welcome-sub">Marina Azul 15 — Gestione Ospiti · Supabase</div>
+        <div className="welcome-sub">Marina Azul 15 — Backend · Supabase</div>
       </div>
 
       <div className="content">
-
-        {/* ── FORM AGGIUNGI ── */}
-        <div className="admin-form">
-          <div className="card-title">➕ {t.aggiungi_ospite}</div>
-          {msg.text && <div className={msg.ok ? 'success-msg' : 'error-msg'}>{msg.text}</div>}
-          <form onSubmit={addGuest}>
-            <div className="form-row">
-              <div className="form-field">
-                <label>{t.nome_ospite}</label>
-                <input type="text" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Es. Famiglia Rossi" required />
-              </div>
-              <div className="form-field">
-                <label>{t.user_ospite}</label>
-                <input type="text" value={form.username} onChange={e=>setForm(f=>({...f,username:e.target.value}))} placeholder="Es. mario" autoCapitalize="none" required />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-field">
-                <label>{t.pass_ospite}</label>
-                <input type="text" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} placeholder="Es. mare2026" required />
-              </div>
-              <div className="form-field">
-                <label>{t.checkin_ospite}</label>
-                <input type="date" value={form.checkin} onChange={e=>setForm(f=>({...f,checkin:e.target.value}))} required />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-field">
-                <label>{t.checkout_ospite}</label>
-                <input type="date" value={form.checkout} onChange={e=>setForm(f=>({...f,checkout:e.target.value}))} required />
-              </div>
-              <div className="form-field" style={{alignSelf:'flex-end'}}>
-                <button type="submit" className="add-btn" disabled={saving}>
-                  {saving ? '...' : t.aggiungi_btn}
-                </button>
-              </div>
-            </div>
-          </form>
+        <div className="admin-tab-nav">
+          {TABS.map(tb => (
+            <button key={tb.id} className={'admin-tab-btn' + (adminTab === tb.id ? ' active' : '')} onClick={() => setAdminTab(tb.id)}>
+              {tb.icon} {tb.lbl}
+            </button>
+          ))}
         </div>
 
-        {/* ── LISTA OSPITI ── */}
-        <div className="card">
-          <div className="card-title">👥 {t.ospiti_registrati} ({guests.length})</div>
-          {loadingList && <div className="loading"><div className="spinner"/></div>}
-          {!loadingList && guests.length === 0 && <p style={{color:'var(--text-muted)',fontSize:'14px'}}>Nessun ospite. Aggiungine uno sopra.</p>}
-          {guests.map(g => {
-            const nights = g.checkin && g.checkout
-              ? Math.round((new Date(g.checkout) - new Date(g.checkin)) / 86400000) : '?';
-            const isEditing = editId === g.id;
-            return (
-              <div className="guest-row" key={g.id}>
-                {isEditing ? (
-                  <div style={{flex:1}}>
-                    <div className="form-row" style={{marginBottom:'8px'}}>
-                      <div className="form-field">
-                        <label>Nome</label>
-                        <input type="text" value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))} />
-                      </div>
-                      <div className="form-field">
-                        <label>Password</label>
-                        <input type="text" value={editData.password} onChange={e=>setEditData(d=>({...d,password:e.target.value}))} />
-                      </div>
-                    </div>
-                    <div className="form-row" style={{marginBottom:'10px'}}>
-                      <div className="form-field">
-                        <label>Check-in</label>
-                        <input type="date" value={editData.checkin} onChange={e=>setEditData(d=>({...d,checkin:e.target.value}))} />
-                      </div>
-                      <div className="form-field">
-                        <label>Check-out</label>
-                        <input type="date" value={editData.checkout} onChange={e=>setEditData(d=>({...d,checkout:e.target.value}))} />
-                      </div>
-                    </div>
-                    <div style={{display:'flex',gap:'8px'}}>
-                      <button className="add-btn" style={{padding:'7px 16px'}} onClick={()=>saveEdit(g.id)} disabled={saving}>Salva</button>
-                      <button className="del-btn" style={{background:'transparent',color:'var(--text-muted)',border:'1px solid var(--border)'}} onClick={()=>setEditId(null)}>Annulla</button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="guest-info">
-                      <div className="guest-name">{g.name}</div>
-                      <div className="guest-user">@{g.username}</div>
-                      <div className="guest-dates">{g.checkin} → {g.checkout} ({nights} notti)</div>
-                    </div>
-                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button className="edit-btn" onClick={()=>{ setEditId(g.id); setEditData({name:g.name,password:g.password,checkin:g.checkin,checkout:g.checkout}); }}>✏️</button>
-                      <button className="del-btn" onClick={()=>delGuest(g.id, g.name)}>{t.elimina}</button>
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
+        {adminTab === 'ospiti'     && <OspitiSection />}
+        {adminTab === 'ristoranti' && <RistorantiSection />}
+        {adminTab === 'attivita'   && <AttivitaSection />}
+        {adminTab === 'eventi'     && <EventiSection />}
+        {adminTab === 'trasporti'  && <TrasportiSection />}
+        {adminTab === 'infocasa'   && <InfoCasaSection />}
+        {adminTab === 'regole'     && <RegoleSection />}
+        {adminTab === 'contatti'   && <ContattiAdminSection />}
       </div>
     </div>
   );
 }
+
 
 /* ═══════════════════════════════════════════════════════════
    DASHBOARD

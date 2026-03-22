@@ -385,7 +385,7 @@
       background: #fffbeb; border-left: 3px solid var(--gold);
       padding-left: 13px;
     }
-    .asection-item.dragging { opacity: 0.35; background: var(--bg); }
+    .asection-item.dragging { opacity: 0.35; background: var(--bg); pointer-events: none; }
     .drag-handle {
       cursor: grab; color: var(--text-muted); font-size: 18px; flex-shrink: 0;
       padding: 2px 4px; user-select: none; opacity: 0.3; transition: opacity 0.2s;
@@ -1257,17 +1257,19 @@ function ContattiTab({ content }) {
 ═══════════════════════════════════════════════════════════ */
 function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }) {
   orderField = orderField || 'ordine';
-  const [items, setItems]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [form, setForm]           = useState(emptyForm);
-  const [editId, setEditId]       = useState(null);
-  const [editData, setEditData]   = useState({});
-  const [saving, setSaving]       = useState(false);
-  const [msg, setMsg]             = useState('');
+  const [items, setItems]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [form, setForm]             = useState(emptyForm);
+  const [editId, setEditId]         = useState(null);
+  const [editData, setEditData]     = useState({});
+  const [saving, setSaving]         = useState(false);
+  const [msg, setMsg]               = useState('');
   const [dragOverId, setDragOverId] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
   const dragIdx  = useRef(null);
   const overIdx  = useRef(null);
+  const itemsRef = useRef(items);
+  useEffect(() => { itemsRef.current = items; }, [items]);
 
   async function load() {
     setLoading(true);
@@ -1282,7 +1284,7 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
   async function add(e) {
     e.preventDefault();
     setSaving(true);
-    const maxOrd = items.length > 0 ? Math.max(...items.map(i => i[orderField] || 0)) : 0;
+    const maxOrd = itemsRef.current.length > 0 ? Math.max(...itemsRef.current.map(i => i[orderField] || 0)) : 0;
     const { error } = await sb.from(table).insert({ ...form, [orderField]: maxOrd + 1 });
     setSaving(false);
     if (error) { flash('❌ ' + error.message); return; }
@@ -1311,34 +1313,50 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
   async function reorder(newItems) {
     const numbered = newItems.map((item, idx) => ({ ...item, [orderField]: idx + 1 }));
     setItems(numbered);
+    itemsRef.current = numbered;
     for (const item of numbered) {
       await sb.from(table).update({ [orderField]: item[orderField] }).eq('id', item.id);
     }
     flash('✅ Ordine aggiornato');
   }
 
-  function onDragStart(e, idx, id) {
-    dragIdx.current = idx;
-    setDraggingId(id);
-    e.dataTransfer.effectAllowed = 'move';
-  }
-  function onDragEnter(e, idx, id) {
+  function startDrag(e, idx, id) {
+    // Only left button for mouse; touch has no button
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.preventDefault();
+    dragIdx.current = idx;
     overIdx.current = idx;
-    setDragOverId(id);
-  }
-  function onDragEnd() {
-    const from = dragIdx.current;
-    const to   = overIdx.current;
-    dragIdx.current = null;
-    overIdx.current = null;
-    setDraggingId(null);
-    setDragOverId(null);
-    if (from === null || to === null || from === to) return;
-    const newItems = [...items];
-    const [moved] = newItems.splice(from, 1);
-    newItems.splice(to, 0, moved);
-    reorder(newItems);
+    setDraggingId(id);
+
+    function onMove(mv) {
+      const el = document.elementFromPoint(mv.clientX, mv.clientY);
+      const row = el && el.closest('[data-drag-idx]');
+      if (!row) return;
+      const ni = parseInt(row.dataset.dragIdx);
+      if (!isNaN(ni) && ni !== overIdx.current) {
+        overIdx.current = ni;
+        setDragOverId(itemsRef.current[ni] ? itemsRef.current[ni].id : null);
+      }
+    }
+
+    function onUp() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      const from = dragIdx.current;
+      const to   = overIdx.current;
+      dragIdx.current = null;
+      overIdx.current = null;
+      setDraggingId(null);
+      setDragOverId(null);
+      if (from === null || to === null || from === to) return;
+      const arr = [...itemsRef.current];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      reorder(arr);
+    }
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
   }
 
   return (
@@ -1359,7 +1377,7 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
           const isDragOver = dragOverId === item.id;
           const isDragging = draggingId === item.id;
           return (
-            <div key={item.id}>
+            <div key={item.id} data-drag-idx={idx}>
               {isEditing ? (
                 <div className="asection-edit-box">
                   {renderFields(editData, d => setEditData(prev => ({...prev, ...d})))}
@@ -1369,15 +1387,13 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
                   </div>
                 </div>
               ) : (
-                <div
-                  className={'asection-item' + (isDragOver ? ' drag-over' : '') + (isDragging ? ' dragging' : '')}
-                  draggable
-                  onDragStart={e => onDragStart(e, idx, item.id)}
-                  onDragEnter={e => onDragEnter(e, idx, item.id)}
-                  onDragEnd={onDragEnd}
-                  onDragOver={e => e.preventDefault()}
-                >
-                  <span className="drag-handle" title="Trascina per riordinare">⠿</span>
+                <div className={'asection-item' + (isDragOver ? ' drag-over' : '') + (isDragging ? ' dragging' : '')}>
+                  <span
+                    className="drag-handle"
+                    title="Trascina per riordinare"
+                    style={{touchAction:'none'}}
+                    onPointerDown={e => startDrag(e, idx, item.id)}
+                  >⠿</span>
                   <div className="asection-item-info">{renderItem(item)}</div>
                   <div className="asection-btns">
                     <button className="edit-btn" onClick={() => { setEditId(item.id); setEditData({...item}); }}>✏️</button>

@@ -2158,6 +2158,10 @@ function AdminPanel({ onLogout }) {
     isAdmin:  false,
   };
 
+  useEffect(() => {
+    if (!preview) gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
+  }, [preview]);
+
   if (preview) return (
     <div className="preview-overlay">
       <div className="preview-banner">
@@ -2169,10 +2173,6 @@ function AdminPanel({ onLogout }) {
       </div>
     </div>
   );
-
-  useEffect(() => {
-    gsap.from('.admin-header', { y: -30, opacity: 0, duration: 0.55, ease: 'power2.out' });
-  }, []);
 
   const TABS_ROW1 = [
     { id:'ospiti',   icon:'👥', lbl:'Ospiti'   },

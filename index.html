@@ -339,27 +339,157 @@
       background-size: cover;
     }
     .admin-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--gold); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-    .admin-form { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow-sm); border-top: 3px solid var(--gold); }
-    .admin-form .card-title { color: var(--gold); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .form-field { display: flex; flex-direction: column; gap: 5px; }
-    .form-field label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
-    .form-field input { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: 'Lato', sans-serif; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s; }
-    .form-field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(224,160,32,0.10); }
-    .add-btn { width: 100%; padding: 12px; background: var(--gold); color: white; border: none; border-radius: var(--radius); font-size: 14px; font-family: 'Lato', sans-serif; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.2s; }
+
+    /* ADMIN TAB NAV */
+    .admin-tab-nav {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 22px;
+      scrollbar-width: none;
+    }
+    .admin-tab-nav::-webkit-scrollbar { display: none; }
+    .admin-tab-btn {
+      flex-shrink: 0; padding: 8px 16px;
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 20px;
+      font-size: 13px; font-family: 'Lato', sans-serif; font-weight: 700; cursor: pointer;
+      color: var(--text-muted); transition: all 0.18s; white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .admin-tab-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .admin-tab-btn.active {
+      background: linear-gradient(135deg, #1a1a2e, #0f3460);
+      color: white; border-color: transparent;
+      box-shadow: 0 3px 10px rgba(15,52,96,0.25);
+    }
+
+    /* ADMIN SECTION — LIST */
+    .asection-list {
+      background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 18px;
+    }
+    .asection-list-header {
+      padding: 13px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    }
+    .asection-list-title { font-size: 13px; font-weight: 700; color: white; letter-spacing: 0.3px; }
+    .asection-count {
+      background: rgba(255,255,255,0.18); color: white;
+      padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    }
+    .asection-item {
+      display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+      border-bottom: 1px solid var(--border); transition: background 0.15s;
+    }
+    .asection-item:last-child { border-bottom: none; }
+    .asection-item:hover { background: var(--primary-lt); }
+    .asection-item.drag-over {
+      background: #fffbeb; border-left: 3px solid var(--gold);
+      padding-left: 13px;
+    }
+    .asection-item.dragging { opacity: 0.35; background: var(--bg); }
+    .drag-handle {
+      cursor: grab; color: var(--text-muted); font-size: 18px; flex-shrink: 0;
+      padding: 2px 4px; user-select: none; opacity: 0.3; transition: opacity 0.2s;
+      line-height: 1;
+    }
+    .asection-item:hover .drag-handle { opacity: 0.75; }
+    .drag-handle:active { cursor: grabbing; }
+    .asection-item-info { flex: 1; min-width: 0; }
+    .asection-item-title {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .asection-item-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .asection-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .asection-edit-box {
+      padding: 16px 18px; background: #fffdf0;
+      border-left: 3px solid var(--gold); border-bottom: 1px solid #f5e8a0;
+    }
+
+    /* ADD FORM */
+    .asection-add-card {
+      background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm);
+      border-top: 3px solid var(--gold);
+    }
+    .asection-add-title {
+      font-size: 13px; font-weight: 700; color: var(--gold);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 7px;
+    }
+
+    /* FORM FIELDS */
+    .arow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .afield { display: flex; flex-direction: column; gap: 5px; }
+    .afield label {
+      font-size: 10px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.7px;
+    }
+    .afield input, .afield select, .afield textarea {
+      padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-size: 13px; font-family: 'Lato', sans-serif; color: var(--text);
+      background: var(--white); outline: none; transition: border-color 0.2s;
+    }
+    .afield textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+    .afield input:focus, .afield select:focus, .afield textarea:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(224,160,32,0.10);
+    }
+    .acheck { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
+    .acheck input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--gold); flex-shrink: 0; }
+    .acheck label { font-size: 13px; color: var(--text); cursor: pointer; }
+
+    /* BUTTONS */
+    .add-btn {
+      width: 100%; padding: 12px; background: var(--gold); color: white; border: none;
+      border-radius: var(--radius); font-size: 14px; font-family: 'Lato', sans-serif;
+      font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.2s;
+    }
     .add-btn:hover { background: #c88c10; }
-    .guest-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .save-btn {
+      background: var(--gold); border: none; color: white; padding: 8px 18px;
+      border-radius: var(--radius); font-size: 13px; font-family: 'Lato', sans-serif;
+      font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .save-btn:hover { background: #c88c10; }
+    .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .cancel-btn {
+      background: none; border: 1.5px solid var(--border); color: var(--text-muted);
+      padding: 8px 16px; border-radius: var(--radius); font-size: 13px;
+      font-family: 'Lato', sans-serif; cursor: pointer; transition: all 0.2s;
+    }
+    .cancel-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .del-btn {
+      background: none; border: 1.5px solid #fed7d7; color: #c53030; padding: 6px 10px;
+      border-radius: var(--radius); font-size: 12px; font-weight: 700; cursor: pointer;
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .del-btn:hover { background: #fff5f5; border-color: #c53030; }
+    .edit-btn {
+      background: none; border: 1.5px solid var(--border); color: var(--text-muted);
+      padding: 6px 10px; border-radius: var(--radius); font-size: 13px;
+      cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+    }
+    .edit-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* GUEST ROWS */
+    .guest-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 0; border-bottom: 1px solid var(--border);
+    }
     .guest-row:last-child { border-bottom: none; }
     .guest-info { font-size: 13px; }
     .guest-name { font-weight: 700; color: var(--text); }
     .guest-dates { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     .guest-user { font-size: 11px; color: var(--primary); margin-top: 1px; }
-    .del-btn { background: none; border: 1px solid #fed7d7; color: #c53030; padding: 5px 10px; border-radius: var(--radius); font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
-    .del-btn:hover { background: #fff5f5; }
-    .edit-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 5px 9px; border-radius: var(--radius); font-size: 13px; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
-    .edit-btn:hover { border-color: var(--primary); }
-    .success-msg { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 10px; }
-    .error-msg { background: #fff5f5; border: 1px solid #fed7d7; color: #c53030; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 10px; }
+
+    /* MESSAGES */
+    .success-msg {
+      background: #f0fff4; border: 1px solid #9ae6b4; color: #276749;
+      padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 12px;
+    }
+    .error-msg {
+      background: #fff5f5; border: 1px solid #fed7d7; color: #c53030;
+      padding: 10px 14px; border-radius: var(--radius); font-size: 13px; margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -1127,13 +1257,17 @@ function ContattiTab({ content }) {
 ═══════════════════════════════════════════════════════════ */
 function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }) {
   orderField = orderField || 'ordine';
-  const [items, setItems]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [form, setForm]         = useState(emptyForm);
-  const [editId, setEditId]     = useState(null);
-  const [editData, setEditData] = useState({});
-  const [saving, setSaving]     = useState(false);
-  const [msg, setMsg]           = useState('');
+  const [items, setItems]         = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [form, setForm]           = useState(emptyForm);
+  const [editId, setEditId]       = useState(null);
+  const [editData, setEditData]   = useState({});
+  const [saving, setSaving]       = useState(false);
+  const [msg, setMsg]             = useState('');
+  const [dragOverId, setDragOverId] = useState(null);
+  const [draggingId, setDraggingId] = useState(null);
+  const dragIdx  = useRef(null);
+  const overIdx  = useRef(null);
 
   async function load() {
     setLoading(true);
@@ -1148,7 +1282,8 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
   async function add(e) {
     e.preventDefault();
     setSaving(true);
-    const { error } = await sb.from(table).insert(form);
+    const maxOrd = items.length > 0 ? Math.max(...items.map(i => i[orderField] || 0)) : 0;
+    const { error } = await sb.from(table).insert({ ...form, [orderField]: maxOrd + 1 });
     setSaving(false);
     if (error) { flash('❌ ' + error.message); return; }
     flash('✅ Aggiunto!');
@@ -1156,7 +1291,7 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
     load();
   }
 
-  async function save(id) {
+  async function saveEdit(id) {
     setSaving(true);
     const { error } = await sb.from(table).update(editData).eq('id', id);
     setSaving(false);
@@ -1173,27 +1308,76 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
     load();
   }
 
+  async function reorder(newItems) {
+    const numbered = newItems.map((item, idx) => ({ ...item, [orderField]: idx + 1 }));
+    setItems(numbered);
+    for (const item of numbered) {
+      await sb.from(table).update({ [orderField]: item[orderField] }).eq('id', item.id);
+    }
+    flash('✅ Ordine aggiornato');
+  }
+
+  function onDragStart(e, idx, id) {
+    dragIdx.current = idx;
+    setDraggingId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function onDragEnter(e, idx, id) {
+    e.preventDefault();
+    overIdx.current = idx;
+    setDragOverId(id);
+  }
+  function onDragEnd() {
+    const from = dragIdx.current;
+    const to   = overIdx.current;
+    dragIdx.current = null;
+    overIdx.current = null;
+    setDraggingId(null);
+    setDragOverId(null);
+    if (from === null || to === null || from === to) return;
+    const newItems = [...items];
+    const [moved] = newItems.splice(from, 1);
+    newItems.splice(to, 0, moved);
+    reorder(newItems);
+  }
+
   return (
     <div>
-      {msg && <div className={msg.startsWith('❌') ? 'error-msg' : 'success-msg'} style={{marginBottom:'12px'}}>{msg}</div>}
-      <div className="card" style={{marginBottom:'14px'}}>
-        <div className="card-title" style={{marginBottom:'12px'}}>Elementi ({items.length})</div>
+      {msg && <div className={msg.startsWith('❌') ? 'error-msg' : 'success-msg'}>{msg}</div>}
+
+      <div className="asection-list">
+        <div className="asection-list-header">
+          <span className="asection-list-title">Elementi</span>
+          <span className="asection-count">{items.length}</span>
+        </div>
         {loading && <div className="loading"><div className="spinner"/></div>}
-        {!loading && items.length === 0 && <p style={{color:'var(--text-muted)',fontSize:'13px'}}>Nessun elemento.</p>}
-        {items.map(item => {
-          const isEditing = editId === item.id;
+        {!loading && items.length === 0 && (
+          <p style={{padding:'18px 16px',color:'var(--text-muted)',fontSize:'13px'}}>Nessun elemento.</p>
+        )}
+        {items.map((item, idx) => {
+          const isEditing  = editId === item.id;
+          const isDragOver = dragOverId === item.id;
+          const isDragging = draggingId === item.id;
           return (
             <div key={item.id}>
               {isEditing ? (
                 <div className="asection-edit-box">
                   {renderFields(editData, d => setEditData(prev => ({...prev, ...d})))}
-                  <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
-                    <button className="add-btn" style={{padding:'7px 18px'}} onClick={() => save(item.id)} disabled={saving}>{saving ? '...' : 'Salva'}</button>
-                    <button className="del-btn" style={{background:'transparent',color:'var(--text-muted)',border:'1px solid var(--border)'}} onClick={() => setEditId(null)}>Annulla</button>
+                  <div style={{display:'flex',gap:'8px',marginTop:'14px'}}>
+                    <button className="save-btn" onClick={() => saveEdit(item.id)} disabled={saving}>{saving ? '...' : 'Salva'}</button>
+                    <button className="cancel-btn" onClick={() => setEditId(null)}>Annulla</button>
                   </div>
                 </div>
               ) : (
-                <div className="asection-item">
+                <div
+                  className={'asection-item' + (isDragOver ? ' drag-over' : '') + (isDragging ? ' dragging' : '')}
+                  draggable
+                  onDragStart={e => onDragStart(e, idx, item.id)}
+                  onDragEnter={e => onDragEnter(e, idx, item.id)}
+                  onDragEnd={onDragEnd}
+                  onDragOver={e => e.preventDefault()}
+                >
+                  <span className="drag-handle" title="Trascina per riordinare">⠿</span>
                   <div className="asection-item-info">{renderItem(item)}</div>
                   <div className="asection-btns">
                     <button className="edit-btn" onClick={() => { setEditId(item.id); setEditData({...item}); }}>✏️</button>
@@ -1205,8 +1389,9 @@ function AdminSection({ table, emptyForm, renderItem, renderFields, orderField }
           );
         })}
       </div>
-      <div className="admin-form">
-        <div className="card-title" style={{color:'var(--gold)',marginBottom:'12px'}}>➕ Aggiungi nuovo</div>
+
+      <div className="asection-add-card">
+        <div className="asection-add-title">➕ Aggiungi nuovo</div>
         <form onSubmit={add}>
           {renderFields(form, d => setForm(prev => ({...prev, ...d})))}
           <button type="submit" className="add-btn" disabled={saving}>{saving ? '...' : 'Aggiungi'}</button>
@@ -1364,7 +1549,7 @@ function RistorantiSection() {
               <option value="altro">Altro</option>
             </select>
           </div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Tipo 🇮🇹</label><input type="text" value={data.tipo_it||''} onChange={e => set({tipo_it: e.target.value})} placeholder="Es. 🐟 Pesce e frutti di mare" /></div>
@@ -1407,7 +1592,7 @@ function AttivitaSection() {
       <>
         <div className="arow">
           <div className="afield"><label>Emoji</label><input type="text" value={data.emoji||''} onChange={e => set({emoji: e.target.value})} placeholder="Es. 🏖️" /></div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Nome 🇮🇹</label><input type="text" value={data.nome_it||''} onChange={e => set({nome_it: e.target.value})} required /></div>
@@ -1445,7 +1630,7 @@ function EventiSection() {
       <>
         <div className="arow">
           <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 🌸" /></div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Nome 🇮🇹</label><input type="text" value={data.nome_it||''} onChange={e => set({nome_it: e.target.value})} required /></div>
@@ -1487,7 +1672,7 @@ function TrasportiSection() {
       <>
         <div className="arow">
           <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 🚗" /></div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Titolo 🇮🇹</label><input type="text" value={data.titolo_it||''} onChange={e => set({titolo_it: e.target.value})} required /></div>
@@ -1525,7 +1710,7 @@ function InfoCasaSection() {
       <>
         <div className="arow">
           <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 📶" /></div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Label 🇮🇹</label><input type="text" value={data.label_it||''} onChange={e => set({label_it: e.target.value})} required /></div>
@@ -1567,7 +1752,7 @@ function RegoleSection() {
       <>
         <div className="arow">
           <div className="afield"><label>Icona</label><input type="text" value={data.icona||''} onChange={e => set({icona: e.target.value})} placeholder="Es. 🚬" /></div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Testo 🇮🇹</label><textarea value={data.testo_it||''} onChange={e => set({testo_it: e.target.value})} required /></div>
@@ -1600,7 +1785,7 @@ function ContattiAdminSection() {
       <>
         <div className="arow">
           <div className="afield"><label>Emoji</label><input type="text" value={data.emoji||''} onChange={e => set({emoji: e.target.value})} placeholder="Es. 🏠" /></div>
-          <div className="afield"><label>Ordine</label><input type="number" value={data.ordine||0} onChange={e => set({ordine: parseInt(e.target.value)||0})} /></div>
+          <div style={{display:"none"}}></div>
         </div>
         <div className="arow">
           <div className="afield"><label>Nome</label><input type="text" value={data.nome||''} onChange={e => set({nome: e.target.value})} required /></div>

@@ -918,7 +918,10 @@ function LoginPage({ onLogin }) {
   const [pass, setPass]         = useState('');
   const [err,  setErr]          = useState('');
   const [loading, setLoading]   = useState(false);
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+  const isAndroid = /android/i.test(navigator.userAgent);
   const [canInstall, setCanInstall] = useState(!!window._installPrompt);
+  const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
     const handler = () => setCanInstall(true);
@@ -927,11 +930,14 @@ function LoginPage({ onLogin }) {
   }, []);
 
   async function install() {
+    if (isIos) { setShowIosHint(h => !h); return; }
     if (!window._installPrompt) return;
     window._installPrompt.prompt();
     const { outcome } = await window._installPrompt.userChoice;
     if (outcome === 'accepted') { window._installPrompt = null; setCanInstall(false); }
   }
+
+  const showInstallBtn = canInstall || isIos;
 
   async function submit(e) {
     e.preventDefault();
@@ -1015,10 +1021,17 @@ function LoginPage({ onLogin }) {
           </button>
         </form>
       </div>
-      {canInstall && (
-        <button className="install-btn" onClick={install}>
-          ⊕ Installa l'app sul dispositivo
-        </button>
+      {showInstallBtn && (
+        <div style={{textAlign:'center'}}>
+          <button className="install-btn" onClick={install}>
+            ⊕ Installa l'app sul dispositivo
+          </button>
+          {showIosHint && (
+            <div style={{marginTop:'10px',padding:'10px 16px',background:'rgba(255,255,255,0.15)',borderRadius:'10px',color:'white',fontSize:'12px',lineHeight:'1.5'}}>
+              Su Safari: tocca <strong>⎋ Condividi</strong> → <strong>"Aggiungi a schermata Home"</strong>
+            </div>
+          )}
+        </div>
       )}
       <footer className="login-footer">
         © 2026 Marina Azul 15 — powered by <a href="#" target="_blank" rel="noopener noreferrer">Playground.</a>

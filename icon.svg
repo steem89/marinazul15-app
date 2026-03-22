@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#007ACC"/>
+  <!-- wave -->
+  <path d="M0 340 C80 300 160 380 256 340 C352 300 432 380 512 340 L512 512 L0 512 Z" fill="#005fa3" opacity="0.6"/>
+  <path d="M0 380 C80 340 160 420 256 380 C352 340 432 420 512 380 L512 512 L0 512 Z" fill="#004d8a" opacity="0.5"/>
+  <!-- M -->
+  <text x="256" y="300" font-family="Georgia, serif" font-size="220" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">M</text>
+  <!-- 15 -->
+  <text x="256" y="420" font-family="Lato, Arial, sans-serif" font-size="72" font-weight="bold" fill="rgba(255,255,255,0.85)" text-anchor="middle">15</text>
+</svg>

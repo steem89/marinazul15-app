@@ -481,6 +481,36 @@
     .guest-dates { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
     .guest-user { font-size: 11px; color: var(--primary); margin-top: 1px; }
 
+    /* TRACKING TAB */
+    .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+    .track-stat {
+      background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 16px; box-shadow: var(--shadow-sm); text-align: center;
+    }
+    .track-stat-num { font-size: 32px; font-weight: 700; color: #0f3460; line-height: 1; margin-bottom: 4px; }
+    .track-stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .track-bar-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
+    .track-bar-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+    .track-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .track-bar-row:last-child { margin-bottom: 0; }
+    .track-bar-label { font-size: 12px; color: var(--text-muted); width: 90px; flex-shrink: 0; }
+    .track-bar-bg { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+    .track-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #007ACC, #0096d6); transition: width 0.5s ease; }
+    .track-bar-val { font-size: 12px; font-weight: 700; color: var(--text); width: 28px; text-align: right; flex-shrink: 0; }
+    .track-log { background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .track-log-header { padding: 13px 18px; background: linear-gradient(135deg, #1a1a2e, #0f3460); display: flex; align-items: center; justify-content: space-between; }
+    .track-log-title { font-size: 13px; font-weight: 700; color: white; }
+    .track-log-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .track-log-row:last-child { border-bottom: none; }
+    .track-log-evt { font-weight: 700; color: var(--text); min-width: 100px; }
+    .track-log-dato { color: var(--primary); flex: 1; }
+    .track-log-user { color: var(--text-muted); font-size: 11px; }
+    .track-log-time { color: var(--text-muted); font-size: 11px; flex-shrink: 0; }
+    .track-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+    .track-pill.login     { background: #e8f4fd; color: #007ACC; }
+    .track-pill.tab_change { background: #f0fff4; color: #276749; }
+    .track-pill.lang_change { background: #fffbeb; color: #c88c10; }
+
     /* MESSAGES */
     .success-msg {
       background: #f0fff4; border: 1px solid #9ae6b4; color: #276749;
@@ -505,6 +535,18 @@ const sb = supabase.createClient(
   'https://thzgcvjhrgusvvyhfmgq.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoemdjdmpocmd1c3Z2eWhmbWdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjQxMjksImV4cCI6MjA4OTcwMDEyOX0.a_LxNeTn4eo1Jll2qdH1ZpMgNRAcNaTlatDQOakgXZI'
 );
+
+/* fire-and-forget analytics tracker */
+let _trackLang = 'it';
+let _trackUser = null;
+function track(evento, dato) {
+  sb.from('analytics').insert({
+    evento,
+    dato: dato || null,
+    lang: _trackLang,
+    username: _trackUser || null,
+  }).then(() => {}).catch(() => {});
+}
 
 /* ═══════════════════════════════════════════════════════════
    CONFIGURAZIONE
@@ -1830,6 +1872,109 @@ function ContattiAdminSection() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   ADMIN — TRACKING
+═══════════════════════════════════════════════════════════ */
+function TrackingSection() {
+  const [rows, setRows]       = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await sb.from('analytics').select('*').order('created_at', { ascending: false }).limit(200);
+    setRows(data || []);
+    setLoading(false);
+  }
+  useEffect(() => { load(); }, []);
+
+  if (loading) return <div className="loading"><div className="spinner"/></div>;
+
+  const total   = rows.length;
+  const logins  = rows.filter(r => r.evento === 'login').length;
+  const users   = [...new Set(rows.filter(r => r.username).map(r => r.username))].length;
+  const itCount = rows.filter(r => r.lang === 'it').length;
+  const enCount = rows.filter(r => r.lang === 'en').length;
+
+  // tab usage
+  const tabRows = rows.filter(r => r.evento === 'tab_change');
+  const tabCount = {};
+  tabRows.forEach(r => { tabCount[r.dato] = (tabCount[r.dato] || 0) + 1; });
+  const tabSorted = Object.entries(tabCount).sort((a,b) => b[1]-a[1]);
+  const tabMax = tabSorted[0]?.[1] || 1;
+
+  // recent 30
+  const recent = rows.slice(0, 30);
+
+  function fmtTime(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit' }) + ' ' +
+           d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  const EVT_LABELS = {
+    login: '🔑 Login',
+    tab_change: '📑 Tab',
+    lang_change: '🌐 Lingua',
+  };
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'12px'}}>
+        <button className="cancel-btn" onClick={load}>↻ Aggiorna</button>
+      </div>
+
+      <div className="track-grid">
+        <div className="track-stat">
+          <div className="track-stat-num">{total}</div>
+          <div className="track-stat-lbl">Eventi totali</div>
+        </div>
+        <div className="track-stat">
+          <div className="track-stat-num">{logins}</div>
+          <div className="track-stat-lbl">Accessi</div>
+        </div>
+        <div className="track-stat">
+          <div className="track-stat-num">{users}</div>
+          <div className="track-stat-lbl">Utenti unici</div>
+        </div>
+        <div className="track-stat">
+          <div className="track-stat-num" style={{fontSize:'20px'}}>{itCount} / {enCount}</div>
+          <div className="track-stat-lbl">🇮🇹 IT &nbsp;/&nbsp; 🇬🇧 EN</div>
+        </div>
+      </div>
+
+      {tabSorted.length > 0 && (
+        <div className="track-bar-wrap">
+          <div className="track-bar-title">Tab più visitate</div>
+          {tabSorted.map(([tab, count]) => (
+            <div className="track-bar-row" key={tab}>
+              <span className="track-bar-label">{tab}</span>
+              <div className="track-bar-bg">
+                <div className="track-bar-fill" style={{width: Math.round(count/tabMax*100)+'%'}} />
+              </div>
+              <span className="track-bar-val">{count}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="track-log">
+        <div className="track-log-header">
+          <span className="track-log-title">Ultimi 30 eventi</span>
+          <span className="asection-count">{recent.length}</span>
+        </div>
+        {recent.map(r => (
+          <div className="track-log-row" key={r.id}>
+            <span className={'track-pill ' + r.evento}>{EVT_LABELS[r.evento] || r.evento}</span>
+            <span className="track-log-dato">{r.dato || '—'}</span>
+            <span className="track-log-user">{r.username || ''}</span>
+            <span className="track-log-time">{fmtTime(r.created_at)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
    ADMIN PANEL
 ═══════════════════════════════════════════════════════════ */
 function AdminPanel({ onLogout }) {
@@ -1849,6 +1994,7 @@ function AdminPanel({ onLogout }) {
     { id:'infocasa',   icon:'🏠', lbl:'Info Casa'  },
     { id:'regole',     icon:'📋', lbl:'Regole'     },
     { id:'contatti',   icon:'📞', lbl:'Contatti'   },
+    { id:'tracking',   icon:'📊', lbl:'Tracking'   },
   ];
 
   return (
@@ -1885,6 +2031,7 @@ function AdminPanel({ onLogout }) {
         {adminTab === 'infocasa'   && <InfoCasaSection />}
         {adminTab === 'regole'     && <RegoleSection />}
         {adminTab === 'contatti'   && <ContattiAdminSection />}
+        {adminTab === 'tracking'   && <TrackingSection />}
       </div>
     </div>
   );
@@ -1968,6 +2115,7 @@ function Dashboard({ guest, onLogout }) {
             className={`nav-item${tab === n.id ? ' active' : ''}`}
             onClick={(e) => {
               setTab(n.id);
+              track('tab_change', n.id);
               gsap.fromTo(e.currentTarget.querySelector('.nav-icon'),
                 { scale: 0.7 }, { scale: 1, duration: 0.35, ease: 'back.out(2)' }
               );
@@ -1993,14 +2141,19 @@ function App() {
   function setLang(l) {
     setLangState(l);
     localStorage.setItem('ma15_lang', l);
+    _trackLang = l;
+    track('lang_change', l);
   }
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.it;
 
   function handleLogin(g) {
     setGuest(g);
-    if (!g.isAdmin && !localStorage.getItem('ma15_onboarded')) {
-      setShowOb(true);
+    _trackUser = g.username || null;
+    _trackLang = lang;
+    if (!g.isAdmin) {
+      track('login', g.username);
+      if (!localStorage.getItem('ma15_onboarded')) setShowOb(true);
     }
   }
 

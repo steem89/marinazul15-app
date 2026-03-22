@@ -2292,7 +2292,9 @@ function Dashboard({ guest, onLogout }) {
    APP ROOT
 ═══════════════════════════════════════════════════════════ */
 function App() {
-  const [guest,   setGuest]   = useState(null);
+  const [guest,   setGuest]   = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ma15_guest')) || null; } catch { return null; }
+  });
   const [showOb,  setShowOb]  = useState(false);
   const [lang,    setLangState]= useState(() => localStorage.getItem('ma15_lang') || 'it');
 
@@ -2307,6 +2309,7 @@ function App() {
 
   function handleLogin(g) {
     setGuest(g);
+    localStorage.setItem('ma15_guest', JSON.stringify(g));
     _trackUser = g.username || null;
     _trackLang = lang;
     if (!g.isAdmin) {
@@ -2317,6 +2320,7 @@ function App() {
 
   function handleLogout() {
     setGuest(null);
+    localStorage.removeItem('ma15_guest');
     setShowOb(false);
   }
 

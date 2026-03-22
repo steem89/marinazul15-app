@@ -814,8 +814,8 @@ function LoginPage({ onLogin }) {
     <div className="login-page">
       <div className="login-card">
         <div className="login-lang">
-          <button className={`lang-btn${lang==='it'?' active':''}`} onClick={() => setLang('it')}>🇮🇹 IT</button>
-          <button className={`lang-btn${lang==='en'?' active':''}`} onClick={() => setLang('en')}>🇬🇧 EN</button>
+          <button className={`lang-btn${lang==='it'?' active':''}`} onClick={() => setLang('it')}>🇮🇹</button>
+          <button className={`lang-btn${lang==='en'?' active':''}`} onClick={() => setLang('en')}>🇬🇧</button>
         </div>
         <div className="login-logo">
           <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" />
@@ -1327,7 +1327,7 @@ function AdminPanel({ onLogout }) {
             <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" style={{width:'150px',filter:'brightness(0) invert(1)'}} />
           </div>
           <div className="header-right">
-            <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it'?'🇬🇧 EN':'🇮🇹 IT'}</button>
+            <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it'?'🇬🇧':'🇮🇹'}</button>
             <button className="logout-btn" onClick={onLogout}>{t.logout}</button>
           </div>
         </div>
@@ -1473,7 +1473,7 @@ function Dashboard({ guest, onLogout }) {
             <img src="https://marinazul15.it/wp-content/uploads/2024/04/logo-marina-azul-15-color.png" alt="Marina Azul 15" />
           </div>
           <div className="header-right">
-            <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it'?'🇬🇧 EN':'🇮🇹 IT'}</button>
+            <button className="lang-toggle" onClick={() => setLang(lang==='it'?'en':'it')}>{lang==='it'?'🇬🇧':'🇮🇹'}</button>
             <button className="logout-btn" onClick={onLogout}>{t.logout}</button>
           </div>
         </div>

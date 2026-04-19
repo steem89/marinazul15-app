@@ -303,6 +303,10 @@
     .map-place-name { font-size: 14px; font-weight: 700; color: var(--text); }
     .map-place-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
+    /* SCOPRI DI PIÙ LINK */
+    .scopri-link { display: inline-flex; align-items: center; gap: 4px; color: var(--primary); font-size: 12px; font-weight: 700; text-decoration: none; margin-top: 7px; }
+    .scopri-link:hover { text-decoration: underline; }
+
     /* EVENTI */
     .event-row { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
     .event-row:last-child { border-bottom: none; }
@@ -691,7 +695,7 @@ const TRANSLATIONS = {
     soggiorno_titolo: "Il tuo soggiorno",
     casa_titolo: "Informazioni Casa",
     regole_titolo: "Regole della Casa",
-    checkin_guide_titolo: "Guida Check-in / Check-out",
+    checkin_guide_titolo: "Il tuo arrivo",
     dove_mangiare: "Dove Mangiare",
     cosa_fare: "Cosa Fare",
     mappa_titolo: "Mappa",
@@ -714,7 +718,7 @@ const TRANSLATIONS = {
     benvenuto: "Benvenuto/a,",
     // Bottoni
     avanti: "Avanti →", indietro: "← Indietro", inizia: "Inizia l'app!",
-    cerca: "Cerca ristorante...", tutti: "Tutti", consigliato_badge: "⭐ Consigliato",
+    cerca: "Cerca...", tutti: "Tutti", consigliato_badge: "⭐ Consigliato",
     apri_maps: "📍 Apri in Maps", cerca_attivita: "Cerca attività...",
     // Sub-nav
     guida: "Guida", info_casa: "Info Casa", regole: "Regole",
@@ -729,7 +733,8 @@ const TRANSLATIONS = {
     caricamento_meteo: "Caricamento meteo...",
     meteo_errore: "Meteo non disponibile. Controlla la connessione.",
     // Categorie
-    cat_pesce: "🐟 Pesce", cat_carne: "🥩 Carne", cat_pizza: "🍕 Pizza", cat_bar: "☕ Bar",
+    cat_pesce: "🐟 Pesce", cat_carne: "🥩 Carne", cat_pizza: "🍕 Pizza", cat_bar: "☕ Bar", cat_gelaterie: "🍦 Gelaterie",
+    scopri_di_piu: "Scopri di più",
     nessun_risultato: "Nessun risultato trovato.",
     // Places mappa
     luoghi_vicini: "Luoghi nelle vicinanze",
@@ -760,7 +765,7 @@ const TRANSLATIONS = {
     soggiorno_titolo: "Your Stay",
     casa_titolo: "House Information",
     regole_titolo: "House Rules",
-    checkin_guide_titolo: "Check-in / Check-out Guide",
+    checkin_guide_titolo: "Your Arrival",
     dove_mangiare: "Where to Eat",
     cosa_fare: "Things to Do",
     mappa_titolo: "Map",
@@ -780,7 +785,7 @@ const TRANSLATIONS = {
     completato: "of stay completed",
     benvenuto: "Welcome,",
     avanti: "Next →", indietro: "← Back", inizia: "Start the app!",
-    cerca: "Search restaurant...", tutti: "All", consigliato_badge: "⭐ Recommended",
+    cerca: "Search...", tutti: "All", consigliato_badge: "⭐ Recommended",
     apri_maps: "📍 Open in Maps", cerca_attivita: "Search activities...",
     guida: "Guide", info_casa: "House Info", regole: "Rules",
     attivita: "Activities", mappa: "Map", eventi: "Events", trasporti: "Transport",
@@ -790,7 +795,8 @@ const TRANSLATIONS = {
     ob3_title: "How to use the app", ob3_text: "Use the 5 sections below: Home for weather and countdown, Arrival for check-in and rules, Eat for restaurants, Explore for activities and map, Contacts for useful numbers.",
     caricamento_meteo: "Loading weather...",
     meteo_errore: "Weather unavailable. Check your connection.",
-    cat_pesce: "🐟 Fish", cat_carne: "🥩 Meat", cat_pizza: "🍕 Pizza", cat_bar: "☕ Bar",
+    cat_pesce: "🐟 Fish", cat_carne: "🥩 Meat", cat_pizza: "🍕 Pizza", cat_bar: "☕ Bar", cat_gelaterie: "🍦 Ice Cream",
+    scopri_di_piu: "Learn more",
     nessun_risultato: "No results found.",
     luoghi_vicini: "Nearby places",
     admin_panel: "Admin Panel",
@@ -1034,7 +1040,7 @@ function LoginPage({ onLogin }) {
         </div>
       )}
       <footer className="login-footer">
-        © 2026 Marina Azul 15 — powered by <a href="#" target="_blank" rel="noopener noreferrer">Playground.</a>
+        © 2026 Marina Azul 15
       </footer>
     </div>
   );
@@ -1266,11 +1272,12 @@ function MangiareTab({ content }) {
   const [cat,    setCat]    = useState('tutti');
 
   const CATS = [
-    { id: 'tutti', lbl: t.tutti },
-    { id: 'pesce', lbl: t.cat_pesce },
-    { id: 'carne', lbl: t.cat_carne },
-    { id: 'pizza', lbl: t.cat_pizza },
-    { id: 'bar',   lbl: t.cat_bar   },
+    { id: 'tutti',     lbl: t.tutti         },
+    { id: 'pesce',     lbl: t.cat_pesce     },
+    { id: 'carne',     lbl: t.cat_carne     },
+    { id: 'pizza',     lbl: t.cat_pizza     },
+    { id: 'bar',       lbl: t.cat_bar       },
+    { id: 'gelaterie', lbl: t.cat_gelaterie },
   ];
 
   const filtered = (content.ristoranti||[]).filter(r => {
@@ -1323,7 +1330,7 @@ function ScopriTab({ content }) {
   return (
     <>
       <div className="sub-nav">
-        {[['attivita',t.attivita],['mappa',t.mappa],['eventi',t.eventi],['trasporti',t.trasporti]].map(([id,lbl]) => (
+        {[['attivita',t.attivita],['eventi',t.eventi],['trasporti',t.trasporti]].map(([id,lbl]) => (
           <button key={id} className={`sub-pill${sub===id?' active':''}`} onClick={() => setSub(id)}>{lbl}</button>
         ))}
       </div>
@@ -1337,35 +1344,8 @@ function ScopriTab({ content }) {
               <div>
                 <div className="act-name">{lang==='it'?a.nome_it:a.nome_en}</div>
                 <div className="act-desc">{lang==='it'?a.descrizione_it:a.descrizione_en}</div>
+                {a.link_url && <a href={a.link_url} target="_blank" rel="noopener noreferrer" className="scopri-link">{t.scopri_di_piu} →</a>}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {sub === 'mappa' && (
-        <div className="card">
-          <div className="card-title">🗺️ {t.mappa_titolo}</div>
-          <div className="map-iframe-wrap">
-            <iframe
-              src="https://www.openstreetmap.org/export/embed.html?bbox=14.69%2C42.09%2C14.73%2C42.13&layer=mapnik&marker=42.1099%2C14.7197"
-              allowFullScreen
-              loading="lazy"
-              title="Mappa Vasto Marina"
-            />
-          </div>
-          <div style={{fontSize:'12px',color:'var(--text-muted)',marginBottom:'14px'}}>
-            📍 Marina Azul 15 — Vasto Marina, Abruzzo
-          </div>
-          <div style={{fontSize:'13px',fontWeight:'700',color:'var(--text)',marginBottom:'10px',textTransform:'uppercase',letterSpacing:'0.5px'}}>{t.luoghi_vicini}</div>
-          {MAP_PLACES.map((p,i) => (
-            <div className="map-place" key={i}>
-              <div className="map-place-icon">{p.icon}</div>
-              <div style={{flex:1}}>
-                <div className="map-place-name">{p.nome}</div>
-                <div className="map-place-sub">{p.sub}</div>
-              </div>
-              <a href={p.maps} target="_blank" rel="noopener noreferrer" className="maps-btn" style={{fontSize:'11px',padding:'5px 10px'}}>{t.apri_maps}</a>
             </div>
           ))}
         </div>
@@ -1381,6 +1361,7 @@ function ScopriTab({ content }) {
                 <div className="event-name">{lang==='it'?e.nome_it:e.nome_en}</div>
                 <div className="event-period">{lang==='it'?e.periodo_it:e.periodo_en}</div>
                 <div className="event-desc">{lang==='it'?e.descrizione_it:e.descrizione_en}</div>
+                {e.link_url && <a href={e.link_url} target="_blank" rel="noopener noreferrer" className="scopri-link">{t.scopri_di_piu} →</a>}
               </div>
             </div>
           ))}
@@ -1396,6 +1377,7 @@ function ScopriTab({ content }) {
               <div>
                 <div className="transport-title">{lang==='it'?tr.titolo_it:tr.titolo_en}</div>
                 <div className="transport-desc">{lang==='it'?tr.descrizione_it:tr.descrizione_en}</div>
+                {tr.link_url && <a href={tr.link_url} target="_blank" rel="noopener noreferrer" className="scopri-link">{t.scopri_di_piu} →</a>}
               </div>
             </div>
           ))}
@@ -1740,6 +1722,7 @@ function RistorantiSection() {
               <option value="carne">🥩 Carne</option>
               <option value="pizza">🍕 Pizza</option>
               <option value="bar">☕ Bar</option>
+              <option value="gelaterie">🍦 Gelaterie</option>
               <option value="altro">Altro</option>
             </select>
           </div>
@@ -1780,7 +1763,7 @@ function RistorantiSection() {
    ADMIN — ATTIVITA
 ═══════════════════════════════════════════════════════════ */
 function AttivitaSection() {
-  const EMPTY = { emoji:'', nome_it:'', nome_en:'', descrizione_it:'', descrizione_en:'', ordine:0 };
+  const EMPTY = { emoji:'', nome_it:'', nome_en:'', descrizione_it:'', descrizione_en:'', link_url:'', ordine:0 };
   function fields(data, set) {
     return (
       <>
@@ -1796,6 +1779,7 @@ function AttivitaSection() {
           <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
           <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
         </div>
+        <div className="afield"><label>🔗 Link "Scopri di più" (opzionale)</label><input type="text" value={data.link_url||''} onChange={e => set({link_url: e.target.value})} placeholder="https://..." /></div>
       </>
     );
   }
@@ -1818,7 +1802,7 @@ function AttivitaSection() {
    ADMIN — EVENTI
 ═══════════════════════════════════════════════════════════ */
 function EventiSection() {
-  const EMPTY = { icona:'', nome_it:'', nome_en:'', periodo_it:'', periodo_en:'', descrizione_it:'', descrizione_en:'', ordine:0 };
+  const EMPTY = { icona:'', nome_it:'', nome_en:'', periodo_it:'', periodo_en:'', descrizione_it:'', descrizione_en:'', link_url:'', ordine:0 };
   function fields(data, set) {
     return (
       <>
@@ -1838,6 +1822,7 @@ function EventiSection() {
           <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
           <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
         </div>
+        <div className="afield"><label>🔗 Link "Scopri di più" (opzionale)</label><input type="text" value={data.link_url||''} onChange={e => set({link_url: e.target.value})} placeholder="https://..." /></div>
       </>
     );
   }
@@ -1860,7 +1845,7 @@ function EventiSection() {
    ADMIN — TRASPORTI
 ═══════════════════════════════════════════════════════════ */
 function TrasportiSection() {
-  const EMPTY = { icona:'', titolo_it:'', titolo_en:'', descrizione_it:'', descrizione_en:'', ordine:0 };
+  const EMPTY = { icona:'', titolo_it:'', titolo_en:'', descrizione_it:'', descrizione_en:'', link_url:'', ordine:0 };
   function fields(data, set) {
     return (
       <>
@@ -1876,6 +1861,7 @@ function TrasportiSection() {
           <div className="afield"><label>Descrizione 🇮🇹</label><textarea value={data.descrizione_it||''} onChange={e => set({descrizione_it: e.target.value})} /></div>
           <div className="afield"><label>Descrizione 🇬🇧</label><textarea value={data.descrizione_en||''} onChange={e => set({descrizione_en: e.target.value})} /></div>
         </div>
+        <div className="afield"><label>🔗 Link "Scopri di più" (opzionale)</label><input type="text" value={data.link_url||''} onChange={e => set({link_url: e.target.value})} placeholder="https://..." /></div>
       </>
     );
   }

@@ -600,30 +600,24 @@
     }
 
     /* CHATBOT */
-    .chatbot-wrapper {
-      position: fixed; bottom: 86px; right: 16px; z-index: 200;
-      display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
-    }
     .chatbot-fab {
+      position: fixed; bottom: 86px; right: 16px; z-index: 200;
       width: 52px; height: 52px; border-radius: 50%;
       background: var(--primary); color: white;
       border: none; font-size: 22px; cursor: pointer;
       box-shadow: 0 4px 20px rgba(0,80,160,0.35);
       transition: transform 0.2s, background 0.2s;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
     }
     .chatbot-fab:hover { background: var(--primary-dk); transform: scale(1.08); }
-    .chatbot-panel {
-      background: white; border-radius: 16px;
-      box-shadow: 0 8px 40px rgba(0,80,160,0.20);
-      display: flex; flex-direction: column;
-      width: calc(100vw - 32px); max-width: 400px; max-height: 65vh;
-      overflow: hidden; animation: chatSlideUp 0.28s ease;
+    .chatbot-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 300;
+      background: var(--bg); display: flex; flex-direction: column;
+      animation: chatFadeIn 0.22s ease;
     }
-    @keyframes chatSlideUp {
-      from { transform: translateY(16px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
+    @keyframes chatFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .chatbot-header {
       background: var(--primary); color: white;
@@ -1556,7 +1550,7 @@ function Chatbot({ content, guest }) {
     const en = l === 'en';
     let text = '', items = [], nextChips = mainChips(l);
 
-    if (/ristorante|mangiare|pizza|pesce|cena|pranzo|dove mangio|food|restaurant|eat|lunch|dinner/.test(q)) {
+    if (/ristorant|mangiare|pizza|pesce|cena|pranzo|dove mangio|food|restaurant|eat|lunch|dinner/.test(q)) {
       text = en ? '🍽️ Here are the restaurants:' : '🍽️ Ecco i ristoranti:';
       items = (content?.ristoranti || []).map(r => ({
         name: `${r.emoji||'🍴'} ${r.nome}`,
@@ -1647,9 +1641,9 @@ function Chatbot({ content, guest }) {
   if (!content) return null;
 
   return (
-    <div className="chatbot-wrapper">
-      {open && (
-        <div className="chatbot-panel">
+    <>
+      {open ? (
+        <div className="chatbot-overlay">
           <div className="chatbot-header">
             <div className="chatbot-header-title">
               🤖 {lang==='en'?'Marina Azul 15 Assistant':'Assistente Marina Azul 15'}
@@ -1702,15 +1696,16 @@ function Chatbot({ content, guest }) {
             <button className="chatbot-send" onClick={() => sendMessage()}>➤</button>
           </div>
         </div>
+      ) : (
+        <button
+          className="chatbot-fab"
+          onClick={() => setOpen(true)}
+          title={lang==='en'?'Chat with us':'Chatta con noi'}
+        >
+          💬
+        </button>
       )}
-      <button
-        className="chatbot-fab"
-        onClick={() => setOpen(o => !o)}
-        title={lang==='en'?'Chat with us':'Chatta con noi'}
-      >
-        {open ? '✕' : '💬'}
-      </button>
-    </div>
+    </>
   );
 }
 
